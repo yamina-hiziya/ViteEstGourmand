@@ -69,7 +69,10 @@ class AuthController extends Controller
                         'nom' => $user->getNom(),
                         'role_id' => $user->getRoleId(),
                     ];
-                    header('Location: index.php');
+                    // On renvoie vers la page mémorisée s'il y en a une, sinon vers l'accueil
+                    $redirection = $_SESSION['redirect_after_login'] ?? 'index.php';
+                    unset($_SESSION['redirect_after_login']);
+                    header('Location: ' . $redirection);
                     exit;
                 }
             } else {

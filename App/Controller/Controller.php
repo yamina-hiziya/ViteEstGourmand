@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Controller\ContactController;
+use App\Controller\CommandeController;
 
 class Controller
 {
@@ -27,6 +28,10 @@ class Controller
                         break;
                     case 'menu':
                         $controller = new MenuController();
+                        $controller->route();
+                        break;
+                    case 'commande':
+                        $controller = new CommandeController();
                         $controller->route();
                         break;
                     case 'contact':
