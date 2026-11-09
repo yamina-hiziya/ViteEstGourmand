@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Controller;
+
 use App\Entity\User;
 use App\Repository\MenuRepository;
 use App\Repository\PlatRepository;
+use App\Repository\UserRepository;
 
 
 class CommandeController extends Controller
@@ -35,11 +37,11 @@ class CommandeController extends Controller
         try {
             // 1. Seul un utilisateur connecté peut commander
             if (!User::isLogged()) {
-                    // On mémorise la page de commande, pour y revenir après la connexion
-                    $_SESSION['redirect_after_login'] = 'index.php?controller=commande&action=create&menu_id=' . (int) ($_GET['menu_id'] ?? 0);
-                    $_SESSION['message_succes'] = 'Connectez-vous ou créez un compte pour commander ce menu.';
-                    header('Location: index.php?controller=auth&action=login');
-                    exit;
+                // On mémorise la page de commande, pour y revenir après la connexion
+                $_SESSION['redirect_after_login'] = 'index.php?controller=commande&action=create&menu_id=' . (int) ($_GET['menu_id'] ?? 0);
+                $_SESSION['message_succes'] = 'Connectez-vous ou créez un compte pour commander ce menu.';
+                header('Location: index.php?controller=auth&action=login');
+                exit;
             }
 
             // 2. On vérifie que l'id du menu est bien dans l'URL
@@ -60,10 +62,15 @@ class CommandeController extends Controller
             $platRepository = new PlatRepository();
             $plats = $platRepository->findAllByMenuId($id);
 
+            // On récupère l'utilisateur connecté, pour pré-remplir ses informations
+            $userRepository = new UserRepository();
+            $user = $userRepository->findOneById(User::getCurrentUserId());
+
             // 5. On affiche le formulaire de commande
             $this->render('commande/create', [
                 'menu' => $menu,
                 'plats' => $plats,
+                'user' => $user
             ]);
         } catch (\Exception $e) {
             $this->render('errors/default', [
