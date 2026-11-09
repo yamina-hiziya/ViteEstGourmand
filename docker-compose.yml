@@ -1,0 +1,49 @@
+services:
+  web:
+    build: .
+    container_name: vg_web
+    ports:
+      - "8095:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+      - mongo
+
+  db:
+    image: mysql:8.0
+    container_name: vg_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: vite_gourmand
+      MYSQL_USER: vg_user
+      MYSQL_PASSWORD: vg_pass
+    ports:
+      - "3315:3306"
+    volumes:
+      - vg_db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: vg_phpmyadmin
+    ports:
+      - "8096:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    depends_on:
+      - db
+
+  mongo:
+    image: mongo:7
+    container_name: vg_mongo
+    restart: always
+    ports:
+      - "27019:27017"
+    volumes:
+      - vg_mongo_data:/data/db
+
+volumes:
+  vg_db_data:
+  vg_mongo_data:

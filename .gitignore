@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Fichiers sensibles / configuration locale
+.env
+.env.*
+db_config.php
+
+# Dépendances
+/vendor/
+/node_modules/
+
+# Logs et fichiers temporaires
+*.log
+*.tmp
+*.cache
+
+# Éditeurs
+.idea/
+.vscode/
+*.swp

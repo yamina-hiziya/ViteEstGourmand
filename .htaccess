@@ -1,0 +1,17 @@
+
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+#accueil
+RewriteRule ^$ index.php?controller=page&action=accueil [L]
+
+#page statique
+RewriteRule ^a-propos/?$ index.php?controller=page&action=about [L]
+
+#page menus
+RewriteRule ^menus/?$ index.php?controller=menu&action=menus [L]
+RewriteRule ^menu/([0_9]+)/?$ index.php?controller=menu&action= [L]
+
+
