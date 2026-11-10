@@ -16,7 +16,7 @@ class User extends Entity
     protected ?string $adresse_postale = null;
     protected ?bool $actif = null;
     protected ?int $role_id = null;
-    
+
     /**
      * Get the value of utilisateur_id
      */
@@ -221,38 +221,38 @@ class User extends Entity
         Pourrait être déplacé dans une classe UserValidator
     */
     public function validate(): array
-{
-    $errors = [];
-    if (empty($this->getNom())) {
-        $errors['nom'] = 'Le champ nom ne doit pas être vide';
+    {
+        $errors = [];
+        if (empty($this->getNom())) {
+            $errors['nom'] = 'Le champ nom ne doit pas être vide';
+        }
+        if (empty($this->getPrenom())) {
+            $errors['prenom'] = 'Le champ prénom ne doit pas être vide';
+        }
+        if (empty($this->getEmail())) {
+            $errors['email'] = 'Le champ email ne doit pas être vide';
+        } else if (!filter_var($this->getEmail(), FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'L\'email n\'est pas valide';
+        }
+        if (empty($this->getTelephone())) {
+            $errors['telephone'] = 'Le champ téléphone ne doit pas être vide';
+        }
+        if (empty($this->getAdressePostale())) {
+            $errors['adresse_postale'] = 'Le champ adresse ne doit pas être vide';
+        }
+        if (empty($this->getVille())) {
+            $errors['ville'] = 'Le champ ville ne doit pas être vide';
+        }
+        if (empty($this->getPays())) {
+            $errors['pays'] = 'Le champ pays ne doit pas être vide';
+        }
+        if (empty($this->getPassword())) {
+            $errors['password'] = 'Le champ mot de passe ne doit pas être vide';
+        } else if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $this->getPassword())) {
+            $errors['password'] = 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
+        }
+        return $errors;
     }
-    if (empty($this->getPrenom())) {
-        $errors['prenom'] = 'Le champ prénom ne doit pas être vide';
-    }
-    if (empty($this->getEmail())) {
-        $errors['email'] = 'Le champ email ne doit pas être vide';
-    } else if (!filter_var($this->getEmail(), FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = 'L\'email n\'est pas valide';
-    }
-    if (empty($this->getTelephone())) {
-        $errors['telephone'] = 'Le champ téléphone ne doit pas être vide';
-    }
-    if (empty($this->getAdressePostale())) {
-        $errors['adresse_postale'] = 'Le champ adresse ne doit pas être vide';
-    }
-    if (empty($this->getVille())) {
-        $errors['ville'] = 'Le champ ville ne doit pas être vide';
-    }
-    if (empty($this->getPays())) {
-        $errors['pays'] = 'Le champ pays ne doit pas être vide';
-    }
-    if (empty($this->getPassword())) {
-        $errors['password'] = 'Le champ mot de passe ne doit pas être vide';
-    } else if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $this->getPassword())) {
-        $errors['password'] = 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
-    }
-    return $errors;
-}
 
     /*
         Pourrait être déplacé dans une classe Security
@@ -279,18 +279,25 @@ class User extends Entity
         Pourrait être déplacé dans une classe Security
     */
     public static function isUser(): bool
-{
-    return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 1;
-}
+    {
+        return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 1;
+    }
 
-public static function isEmploye(): bool
-{
-    return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 2;
-}
+    public static function isEmploye(): bool
+    {
+        return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 2;
+    }
 
-public static function isAdmin(): bool
-{
-    return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 3;
-}
+    public static function isAdmin(): bool
+    {
+        return isset($_SESSION['user']) && $_SESSION['user']['role_id'] === 3;
+    }
 
+    /*
+    Renvoie l'identifiant de l'utilisateur connecté, ou false si personne n'est connecté
+*/
+    public static function getCurrentUserId(): int|bool
+    {
+        return (isset($_SESSION['user']) && isset($_SESSION['user']['id'])) ? $_SESSION['user']['id'] : false;
+    }
 }

@@ -3,7 +3,8 @@
 namespace App\Entity;
 
 
-class Commande extends Entity {
+class Commande extends Entity
+{
 
     protected ?string $numero_commande = null;
     protected ?string $date_commande = null;
@@ -289,5 +290,33 @@ class Commande extends Entity {
         $this->menu_id = $menu_id;
 
         return $this;
+    }
+    // les calculs metier devrait aller dans une classe de service, mais pour l'instant on les met dans l'entité Commande 
+
+    /*
+    Prix du menu : prix par personne × nombre de personnes,
+    avec 10 % de réduction à partir de 5 personnes de plus que le minimum du menu
+*/
+    public static function calculerPrixMenu(float $prixParPersonne, int $nbPersonnes, int $minimum): float
+    {
+        $prix = $prixParPersonne * $nbPersonnes;
+
+        if ($nbPersonnes >= $minimum + 5) {
+            $prix = $prix * 0.9;
+        }
+
+        return round($prix, 2);
+    }
+
+    /*
+    Frais de livraison : gratuits à Bordeaux, sinon 5 € + 0,59 € par kilomètre
+*/
+    public static function calculerFraisLivraison(string $ville, float $distanceKm): float
+    {
+        if (mb_strtolower(trim($ville)) === 'bordeaux') {
+            return 0.0;
+        }
+
+        return round(5 + 0.59 * $distanceKm, 2);
     }
 }

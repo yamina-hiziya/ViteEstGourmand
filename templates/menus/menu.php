@@ -47,7 +47,7 @@
                         </div>
                     <?php } ?>
                     <div class="d-flex justify-content-center">
-                        <a href="#" class="btn btn-primary">Commander ce menu</a>
+                        <a href="index.php?controller=commande&action=create&menu_id=<?= $menu->getMenuId() ?>" class="btn btn-primary">Commander ce menu</a>
                     </div>
 
                 </div>
