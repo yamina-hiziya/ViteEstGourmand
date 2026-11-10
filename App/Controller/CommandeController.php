@@ -6,6 +6,8 @@ use App\Entity\User;
 use App\Repository\MenuRepository;
 use App\Repository\PlatRepository;
 use App\Repository\UserRepository;
+use App\Entity\Commande;
+use App\Tools\GeoTools;
 
 
 class CommandeController extends Controller
@@ -66,11 +68,112 @@ class CommandeController extends Controller
             $userRepository = new UserRepository();
             $user = $userRepository->findOneById(User::getCurrentUserId());
 
+            $errors = [];
+
+            // Le formulaire a-t-il été envoyé ?
+            if (isset($_POST['saveCommande'])) {
+
+                // On récupère et nettoie les valeurs
+                $adresse = trim($_POST['adresse_livraison'] ?? '');
+                $ville = trim($_POST['ville_livraison'] ?? '');
+                $date = $_POST['date_prestation'] ?? '';
+                $heure = $_POST['heure_livraison'] ?? '';
+                $nbPersonnes = (int) ($_POST['nombre_personne'] ?? 0);
+                $quantites = $_POST['quantites'] ?? [];
+
+                // Adresse, ville et heure
+                if ($adresse === '' || $ville === '') {
+                    $errors[] = 'Merci d\'indiquer l\'adresse et la ville de la prestation.';
+                }
+                if ($heure === '') {
+                    $errors[] = 'Merci d\'indiquer l\'heure de livraison souhaitée.';
+                }
+
+                // Date : valide, et au plus tôt demain
+                $datePrestation = \DateTime::createFromFormat('Y-m-d', $date);
+                $demain = new \DateTime('tomorrow');
+                if (!$datePrestation || $datePrestation < $demain) {
+                    $errors[] = 'La date de prestation doit être au plus tôt demain.';
+                }
+
+                // Nombre de personnes et stock
+                if ($nbPersonnes < $menu->getNombrePersonneMinimum()) {
+                    $errors[] = 'Ce menu se commande pour ' . $menu->getNombrePersonneMinimum() . ' personnes minimum.';
+                }
+                if ($menu->getQuantiteRestante() <= 0) {
+                    $errors[] = 'Ce menu n\'est plus disponible pour le moment.';
+                }
+
+                // Choix des plats : pour chaque type, la somme doit égaler le nombre de personnes
+                $platsParType = [];
+                foreach ($plats as $plat) {
+                    $platsParType[$plat->getTypePlat()][] = $plat;
+                }
+
+                $lignes = [];
+                foreach ($platsParType as $type => $platsDuType) {
+                    $total = 0;
+                    foreach ($platsDuType as $plat) {
+                        $quantite = max(0, (int) ($quantites[$plat->getPlatId()] ?? 0));
+                        $total += $quantite;
+                        if ($quantite > 0) {
+                            $lignes[] = [
+                                'plat_id' => $plat->getPlatId(),
+                                'titre' => $plat->getTitrePlat(),
+                                'type' => $type,
+                                'quantite' => $quantite,
+                            ];
+                        }
+                    }
+                    if ($total !== $nbPersonnes) {
+                        $errors[] = 'Pour les ' . $type . 's, la somme des quantités (' . $total . ') doit être égale au nombre de personnes (' . $nbPersonnes . ').';
+                    }
+                }
+
+                // Distance : on interroge l'API, seulement si l'adresse est remplie
+                $point = null;
+                if ($adresse !== '' && $ville !== '') {
+                    $point = GeoTools::geocoder($adresse . ' ' . $ville);
+                    if ($point === null) {
+                        $errors[] = 'Adresse introuvable. Merci de vérifier l\'adresse et la ville.';
+                    }
+                }
+
+                // Aucune erreur : on calcule le prix et on prépare le récapitulatif
+                if (empty($errors)) {
+                    $distance = round(GeoTools::distanceKm(GeoTools::BORDEAUX_LAT, GeoTools::BORDEAUX_LON, $point['lat'], $point['lon']), 2);
+                    $prixSansReduction = round($menu->getPrixParPersonne() * $nbPersonnes, 2);
+                    $prixMenu = Commande::calculerPrixMenu($menu->getPrixParPersonne(), $nbPersonnes, $menu->getNombrePersonneMinimum());
+                    $prixLivraison = Commande::calculerFraisLivraison($point['ville'], $distance);
+
+                    // On garde tout en session : le client ne pourra pas modifier ces valeurs
+                    $_SESSION['commande_en_cours'] = [
+                        'menu_id' => $menu->getMenuId(),
+                        'adresse_livraison' => $adresse,
+                        'ville_livraison' => $point['ville'],
+                        'date_prestation' => $date,
+                        'heure_livraison' => $heure,
+                        'nombre_personne' => $nbPersonnes,
+                        'distance_km' => $distance,
+                        'prix_sans_reduction' => $prixSansReduction,
+                        'prix_menu' => $prixMenu,
+                        'prix_livraison' => $prixLivraison,
+                        'lignes' => $lignes,
+                    ];
+
+                    $this->render('commande/recap', [
+                        'menu' => $menu,
+                        'commande' => $_SESSION['commande_en_cours'],
+                    ]);
+                    return;
+                }
+            }
             // 5. On affiche le formulaire de commande
             $this->render('commande/create', [
                 'menu' => $menu,
                 'plats' => $plats,
-                'user' => $user
+                'user' => $user,
+                'errors' => $errors
             ]);
         } catch (\Exception $e) {
             $this->render('errors/default', [

@@ -12,6 +12,9 @@ $types = ['entrée' => 'Entrées', 'plat' => 'Plats', 'dessert' => 'Desserts'];
         À partir de <?= $menu->getNombrePersonneMinimum() ?> personnes —
         <?= number_format($menu->getPrixParPersonne(), 2, ',', ' ') ?> € par personne
     </p>
+    <?php foreach (($errors ?? []) as $error) { ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php } ?>
 
     <form method="POST" novalidate>
 
