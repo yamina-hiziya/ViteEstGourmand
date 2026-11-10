@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\MenuRepository;
 use App\Repository\PlatRepository;
 use App\Repository\UserRepository;
+use App\Repository\CommandeRepository;
 use App\Entity\Commande;
 use App\Tools\GeoTools;
 
@@ -19,6 +20,12 @@ class CommandeController extends Controller
                 switch ($_GET['action']) {
                     case 'create':
                         $this->create();
+                        break;
+                    case 'confirm':
+                        $this->confirm();
+                        break;
+                    case 'merci':
+                        $this->merci();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -180,5 +187,47 @@ class CommandeController extends Controller
                 'error' => $e->getMessage()
             ]);
         }
+    }
+
+    protected function confirm()
+    {
+        try {
+            if (!User::isLogged()) {
+                header('Location: index.php?controller=auth&action=login');
+                exit;
+            }
+
+            if (!isset($_POST['confirmCommande']) || empty($_SESSION['commande_en_cours'])) {
+                throw new \Exception('Aucune commande en cours.');
+            }
+
+            $commandeRepository = new CommandeRepository();
+            $numero = $commandeRepository->creer($_SESSION['commande_en_cours'], User::getCurrentUserId());
+
+            // La commande est enregistrée : on vide la session et on redirige
+            unset($_SESSION['commande_en_cours']);
+            $_SESSION['commande_confirmee'] = $numero;
+            header('Location: index.php?controller=commande&action=merci');
+            exit;
+        } catch (\Exception $e) {
+            $this->render('errors/default', [
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    protected function merci()
+    {
+        $numero = $_SESSION['commande_confirmee'] ?? null;
+        unset($_SESSION['commande_confirmee']);
+
+        if (!$numero) {
+            header('Location: index.php?controller=menu&action=list');
+            exit;
+        }
+
+        $this->render('commande/merci', [
+            'numero' => $numero,
+        ]);
     }
 }
