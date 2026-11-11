@@ -71,4 +71,97 @@ class CommandeRepository extends Repository
             throw $e;
         }
     }
+
+    /*
+    Récupère toutes les commandes d'un utilisateur, avec le titre du menu
+    */
+    public function findAllByUtilisateurId(int $utilisateurId): array
+    {
+        $query = $this->pdo->prepare('SELECT c.numero_commande, c.date_commande, c.date_prestation, c.statut,
+                                         c.prix_menu, c.prix_livraison, m.titre AS menu_titre
+                                  FROM commande c
+                                  JOIN menu m ON m.menu_id = c.menu_id
+                                  WHERE c.utilisateur_id = :utilisateur_id
+                                  ORDER BY c.date_commande DESC');
+        $query->execute(['utilisateur_id' => $utilisateurId]);
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
+
+    /*
+    Une commande, seulement si elle appartient à l'utilisateur (sécurité)
+*/
+public function findOneByNumeroForUser(string $numero, int $utilisateurId): array|bool
+{
+    $query = $this->pdo->prepare('SELECT c.*, m.titre AS menu_titre, m.prix_par_personne
+                                  FROM commande c
+                                  JOIN menu m ON m.menu_id = c.menu_id
+                                  WHERE c.numero_commande = :numero AND c.utilisateur_id = :utilisateur_id');
+    $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
+    return $query->fetch($this->pdo::FETCH_ASSOC);
+}
+
+/*
+    Les plats choisis dans une commande, avec leurs quantités
+*/
+public function findLignes(string $numero): array
+{
+    $query = $this->pdo->prepare('SELECT p.titre_plat, p.type_plat, cp.quantite
+                                  FROM commande_plat cp
+                                  JOIN plat p ON p.plat_id = cp.plat_id
+                                  WHERE cp.numero_commande = :numero
+                                  ORDER BY FIELD(p.type_plat, \'entrée\', \'plat\', \'dessert\')');
+    $query->execute(['numero' => $numero]);
+    return $query->fetchAll($this->pdo::FETCH_ASSOC);
+}
+
+/*
+    L'historique des états d'une commande, du plus ancien au plus récent
+*/
+public function findSuivi(string $numero): array
+{
+    $query = $this->pdo->prepare('SELECT statut, date_heure, motif
+                                  FROM suivi_commande
+                                  WHERE numero_commande = :numero
+                                  ORDER BY date_heure ASC, suivi_id ASC');
+    $query->execute(['numero' => $numero]);
+    return $query->fetchAll($this->pdo::FETCH_ASSOC);
+}
+
+/*
+    Annulation par le client : seulement si la commande est encore en attente
+*/
+public function annuler(string $numero, int $utilisateurId): void
+{
+    try {
+        $this->pdo->beginTransaction();
+
+        // 1. On passe la commande à « annulée », seulement si elle est encore en attente
+        $query = $this->pdo->prepare('UPDATE commande SET statut = \'annulée\'
+                                      WHERE numero_commande = :numero
+                                      AND utilisateur_id = :utilisateur_id
+                                      AND statut = \'en attente\'');
+        $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
+        if ($query->rowCount() === 0) {
+            throw new \Exception('Cette commande ne peut plus être annulée.');
+        }
+
+        // 2. On ajoute l'état dans l'historique
+        $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, numero_commande)
+                                      VALUES (\'annulée\', NOW(), \'Annulée par le client\', :numero)');
+        $query->execute(['numero' => $numero]);
+
+        // 3. On remet le menu en stock
+        $query = $this->pdo->prepare('UPDATE menu SET quantite_restante = quantite_restante + 1
+                                      WHERE menu_id = (SELECT menu_id FROM commande WHERE numero_commande = :numero)');
+        $query->execute(['numero' => $numero]);
+
+        $this->pdo->commit();
+
+    } catch (\Exception $e) {
+        if ($this->pdo->inTransaction()) {
+            $this->pdo->rollBack();
+        }
+        throw $e;
+    }
+}
 }
