@@ -2,6 +2,7 @@
 /** @var array $commande */
 /** @var array $lignes */
 /** @var array $suivi */
+/** @var App\Entity\Avis|bool $avis */
 $total = $commande['prix_menu'] + $commande['prix_livraison'];
 ?>
 
@@ -14,6 +15,9 @@ $total = $commande['prix_menu'] + $commande['prix_livraison'];
 
             <?php if (!empty($succes)) { ?>
                 <div class="alert alert-success"><?= htmlspecialchars($succes) ?></div>
+            <?php } ?>
+            <?php if (!empty($erreur)) { ?>
+                <div class="alert alert-danger"><?= htmlspecialchars($erreur) ?></div>
             <?php } ?>
 
             <div class="card mb-4">
@@ -61,6 +65,39 @@ $total = $commande['prix_menu'] + $commande['prix_livraison'];
                     <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
                     <button type="submit" name="annulerCommande" class="btn btn-outline-danger">Annuler ma commande</button>
                 </form>
+            <?php } ?>
+            <?php if ($avis) { ?>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h2 class="h5">Votre avis</h2>
+                        <p class="mb-1"><?= str_repeat('★', $avis->getNote()) . str_repeat('☆', 5 - $avis->getNote()) ?></p>
+                        <p><?= nl2br(htmlspecialchars($avis->getDescription())) ?></p>
+                        <span class="badge text-bg-secondary"><?= htmlspecialchars(ucfirst($avis->getStatut())) ?></span>
+                    </div>
+                </div>
+            <?php } elseif ($commande['statut'] === 'terminée') { ?>
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h2 class="h5">Donnez votre avis</h2>
+                        <form method="POST" action="index.php?controller=compte&action=avis">
+                            <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
+                            <div class="mb-3">
+                                <label for="note" class="form-label">Note</label>
+                                <select id="note" name="note" class="form-select" required>
+                                    <option value="">Choisir une note</option>
+                                    <?php for ($i = 5; $i >= 1; $i--) { ?>
+                                        <option value="<?= $i ?>"><?= $i ?> / 5</option>
+                                    <?php } ?>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Commentaire</label>
+                                <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <button type="submit" name="envoyerAvis" class="btn btn-primary">Envoyer mon avis</button>
+                        </form>
+                    </div>
+                </div>
             <?php } ?>
         </div>
     </div>

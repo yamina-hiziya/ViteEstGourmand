@@ -5,10 +5,9 @@ namespace App\Entity;
 class Avis extends Entity
 {
     protected ?int $avis_id = null;
-    protected ?string $libelle = '';
     protected ?int $note = null;
     protected ?string $description = null;
-    protected ?string $status = null; 
+    protected ?string $statut = null; 
     protected ?string $numero_commande = null;
     protected ?int $utilisateur_id = null;
 
@@ -25,22 +24,6 @@ class Avis extends Entity
     public function setAvisId(?int $avis_id): self
     {
         $this->avis_id = $avis_id;
-
-        return $this;
-    }
-    /**
-     * Get the value of libelle
-     */
-    public function getLibelle(): ?string
-    {
-        return $this->libelle;
-    }
-    /**
-     * Set the value of libelle
-     */
-    public function setLibelle(?string $libelle): self
-    {
-        $this->libelle = $libelle;
 
         return $this;
     }
@@ -78,19 +61,19 @@ class Avis extends Entity
         return $this;
     }
     /**
-     * Get the value of status
+     * Get the value of statut
      */
-    public function getStatus(): ?string
+    public function getStatut(): ?string
     {
-        return $this->status;
+        return $this->statut;
     }
 
     /**
-     * Set the value of status
+     * Set the value of statut
      */
-    public function setStatus(?string $status): self
+    public function setStatut(?string $statut): self
     {
-        $this->status = $status;
+        $this->statut = $statut;
 
         return $this;
     }
