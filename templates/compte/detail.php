@@ -61,6 +61,7 @@ $total = $commande['prix_menu'] + $commande['prix_livraison'];
             </div>
 
             <?php if ($commande['statut'] === 'en attente') { ?>
+                <a href="index.php?controller=commande&action=modifier&numero=<?= urlencode($commande['numero_commande']) ?>" class="btn btn-outline-primary mb-2">Modifier ma commande</a>
                 <form method="POST" action="index.php?controller=compte&action=annuler" onsubmit="return confirm('Voulez-vous vraiment annuler cette commande ?');">
                     <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
                     <button type="submit" name="annulerCommande" class="btn btn-outline-danger">Annuler ma commande</button>

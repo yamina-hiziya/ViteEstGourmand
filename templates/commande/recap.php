@@ -81,8 +81,13 @@ $types = ['entrée' => 'Entrées', 'plat' => 'Plats', 'dessert' => 'Desserts'];
             <?php } ?>
 
             <form method="POST" action="index.php?controller=commande&action=confirm" class="d-flex gap-2 justify-content-end">
-                <a href="index.php?controller=commande&action=create&menu_id=<?= $menu->getMenuId() ?>" class="btn btn-outline-secondary">Modifier</a>
-                <button type="submit" name="confirmCommande" class="btn btn-primary">Confirmer la commande</button>
+                <?php $lienModifier = isset($commande['numero_commande'])
+                    ? 'index.php?controller=commande&action=modifier&numero=' . urlencode($commande['numero_commande'])
+                    : 'index.php?controller=commande&action=create&menu_id=' . $menu->getMenuId(); ?>
+                <a href="<?= $lienModifier ?>" class="btn btn-outline-secondary">Modifier</a>
+                <button type="submit" name="confirmCommande" class="btn btn-primary">
+                    <?= isset($commande['numero_commande']) ? 'Confirmer la modification' : 'Confirmer la commande' ?>
+                </button>
             </form>
         </div>
     </div>

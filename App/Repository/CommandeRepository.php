@@ -90,78 +90,132 @@ class CommandeRepository extends Repository
     /*
     Une commande, seulement si elle appartient à l'utilisateur (sécurité)
 */
-public function findOneByNumeroForUser(string $numero, int $utilisateurId): array|bool
-{
-    $query = $this->pdo->prepare('SELECT c.*, m.titre AS menu_titre, m.prix_par_personne
+    public function findOneByNumeroForUser(string $numero, int $utilisateurId): array|bool
+    {
+        $query = $this->pdo->prepare('SELECT c.*, m.titre AS menu_titre, m.prix_par_personne
                                   FROM commande c
                                   JOIN menu m ON m.menu_id = c.menu_id
                                   WHERE c.numero_commande = :numero AND c.utilisateur_id = :utilisateur_id');
-    $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
-    return $query->fetch($this->pdo::FETCH_ASSOC);
-}
+        $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
+        return $query->fetch($this->pdo::FETCH_ASSOC);
+    }
 
-/*
+    /*
     Les plats choisis dans une commande, avec leurs quantités
 */
-public function findLignes(string $numero): array
-{
-    $query = $this->pdo->prepare('SELECT p.titre_plat, p.type_plat, cp.quantite
+    public function findLignes(string $numero): array
+    {
+        $query = $this->pdo->prepare('SELECT cp.plat_id, p.titre_plat, p.type_plat, cp.quantite
                                   FROM commande_plat cp
                                   JOIN plat p ON p.plat_id = cp.plat_id
                                   WHERE cp.numero_commande = :numero
                                   ORDER BY FIELD(p.type_plat, \'entrée\', \'plat\', \'dessert\')');
-    $query->execute(['numero' => $numero]);
-    return $query->fetchAll($this->pdo::FETCH_ASSOC);
-}
+        $query->execute(['numero' => $numero]);
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
 
-/*
+    /*
     L'historique des états d'une commande, du plus ancien au plus récent
 */
-public function findSuivi(string $numero): array
-{
-    $query = $this->pdo->prepare('SELECT statut, date_heure, motif
+    public function findSuivi(string $numero): array
+    {
+        $query = $this->pdo->prepare('SELECT statut, date_heure, motif
                                   FROM suivi_commande
                                   WHERE numero_commande = :numero
                                   ORDER BY date_heure ASC, suivi_id ASC');
-    $query->execute(['numero' => $numero]);
-    return $query->fetchAll($this->pdo::FETCH_ASSOC);
-}
+        $query->execute(['numero' => $numero]);
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
 
-/*
+    /*
     Annulation par le client : seulement si la commande est encore en attente
 */
-public function annuler(string $numero, int $utilisateurId): void
-{
-    try {
-        $this->pdo->beginTransaction();
+    public function annuler(string $numero, int $utilisateurId): void
+    {
+        try {
+            $this->pdo->beginTransaction();
 
-        // 1. On passe la commande à « annulée », seulement si elle est encore en attente
-        $query = $this->pdo->prepare('UPDATE commande SET statut = \'annulée\'
+            // 1. On passe la commande à « annulée », seulement si elle est encore en attente
+            $query = $this->pdo->prepare('UPDATE commande SET statut = \'annulée\'
                                       WHERE numero_commande = :numero
                                       AND utilisateur_id = :utilisateur_id
                                       AND statut = \'en attente\'');
-        $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
-        if ($query->rowCount() === 0) {
-            throw new \Exception('Cette commande ne peut plus être annulée.');
-        }
+            $query->execute(['numero' => $numero, 'utilisateur_id' => $utilisateurId]);
+            if ($query->rowCount() === 0) {
+                throw new \Exception('Cette commande ne peut plus être annulée.');
+            }
 
-        // 2. On ajoute l'état dans l'historique
-        $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, numero_commande)
+            // 2. On ajoute l'état dans l'historique
+            $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, numero_commande)
                                       VALUES (\'annulée\', NOW(), \'Annulée par le client\', :numero)');
-        $query->execute(['numero' => $numero]);
+            $query->execute(['numero' => $numero]);
 
-        // 3. On remet le menu en stock
-        $query = $this->pdo->prepare('UPDATE menu SET quantite_restante = quantite_restante + 1
+            // 3. On remet le menu en stock
+            $query = $this->pdo->prepare('UPDATE menu SET quantite_restante = quantite_restante + 1
                                       WHERE menu_id = (SELECT menu_id FROM commande WHERE numero_commande = :numero)');
-        $query->execute(['numero' => $numero]);
+            $query->execute(['numero' => $numero]);
 
-        $this->pdo->commit();
-
-    } catch (\Exception $e) {
-        if ($this->pdo->inTransaction()) {
-            $this->pdo->rollBack();
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
         }
-        throw $e;
     }
-}
+    /*
+    Modification d'une commande encore en attente, dans une transaction
+*/
+    public function modifier(string $numero, int $utilisateurId, array $commande): void
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. On met à jour la commande, seulement si elle est encore en attente
+            $query = $this->pdo->prepare('UPDATE commande SET
+                date_prestation = :date_prestation, heure_livraison = :heure_livraison,
+                adresse_livraison = :adresse_livraison, ville_livraison = :ville_livraison,
+                distance_km = :distance_km, prix_menu = :prix_menu,
+                nombre_personne = :nombre_personne, prix_livraison = :prix_livraison
+            WHERE numero_commande = :numero AND utilisateur_id = :utilisateur_id AND statut = \'en attente\'');
+            $query->execute([
+                'date_prestation' => $commande['date_prestation'],
+                'heure_livraison' => $commande['heure_livraison'],
+                'adresse_livraison' => $commande['adresse_livraison'],
+                'ville_livraison' => $commande['ville_livraison'],
+                'distance_km' => $commande['distance_km'],
+                'prix_menu' => $commande['prix_menu'],
+                'nombre_personne' => $commande['nombre_personne'],
+                'prix_livraison' => $commande['prix_livraison'],
+                'numero' => $numero,
+                'utilisateur_id' => $utilisateurId,
+            ]);
+
+            // 2. On remplace les plats choisis
+            $query = $this->pdo->prepare('DELETE FROM commande_plat WHERE numero_commande = :numero');
+            $query->execute(['numero' => $numero]);
+
+            $query = $this->pdo->prepare('INSERT INTO commande_plat (numero_commande, plat_id, quantite)
+                                      VALUES (:numero, :plat_id, :quantite)');
+            foreach ($commande['lignes'] as $ligne) {
+                $query->execute([
+                    'numero' => $numero,
+                    'plat_id' => $ligne['plat_id'],
+                    'quantite' => $ligne['quantite'],
+                ]);
+            }
+
+            // 3. On garde une trace dans l'historique
+            $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, numero_commande)
+                                      VALUES (\'en attente\', NOW(), \'Commande modifiée par le client\', :numero)');
+            $query->execute(['numero' => $numero]);
+
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
 }
