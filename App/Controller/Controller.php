@@ -38,6 +38,10 @@ class Controller
                         $controller = new ContactController();
                         $controller->route();
                         break;
+                    case 'compte':
+                        $controller = new CompteController();
+                        $controller->route();
+                        break;
                     default:
                         throw new \Exception("Le controleur n'existe pas");
                         break;
@@ -67,7 +71,7 @@ class Controller
                 require_once $filePath;
             }
         } catch (\Exception $e) {
-            
+
             $this->render('errors/default', [
                 'error' => $e->getMessage()
             ]);
