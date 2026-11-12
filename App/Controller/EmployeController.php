@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Commande;
 use App\Entity\User;
 use App\Repository\CommandeRepository;
+use App\Repository\AvisRepository;
 
 class EmployeController extends Controller
 {
@@ -21,12 +22,18 @@ class EmployeController extends Controller
                     case 'commandes':
                         $this->commandes();
                         break;
-                        case 'commande':
-                            $this->commande();
-                            break;
-                        case 'statut':
-                            $this->statut();
-                            break;
+                    case 'commande':
+                        $this->commande();
+                        break;
+                    case 'statut':
+                        $this->statut();
+                        break;
+                    case 'avis':
+                        $this->avis();
+                        break;
+                    case 'moderer':
+                        $this->moderer();
+                        break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
                 }
@@ -120,6 +127,37 @@ class EmployeController extends Controller
 
         $_SESSION['message_succes'] = 'Le statut de la commande est maintenant : ' . $statut . '.';
         header($retour);
+        exit;
+    }
+
+    protected function avis()
+    {
+        $avisRepository = new AvisRepository();
+
+        $succes = $_SESSION['message_succes'] ?? null;
+        unset($_SESSION['message_succes']);
+
+        $this->render('employe/avis', [
+            'avisListe' => $avisRepository->findEnAttente(),
+            'succes' => $succes,
+        ]);
+    }
+
+    protected function moderer()
+    {
+        $avisId = (int) ($_POST['avis_id'] ?? 0);
+        $decision = $_POST['decision'] ?? '';
+
+        if (!in_array($decision, ['validé', 'refusé'], true)) {
+            throw new \Exception('Décision invalide.');
+        }
+
+        $avisRepository = new AvisRepository();
+        if ($avisRepository->changerStatut($avisId, $decision)) {
+            $_SESSION['message_succes'] = 'L\'avis a bien été ' . $decision . '.';
+        }
+
+        header('Location: index.php?controller=employe&action=avis');
         exit;
     }
 }

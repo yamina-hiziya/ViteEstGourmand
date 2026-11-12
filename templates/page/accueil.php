@@ -47,47 +47,23 @@
     </div>
     <div class="d-grid gap-2 d-md-flex justify-content-md-center"> <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Découvrir notre carte</button></div>
 </div>
-<section class="py-5">
-    <div class="container">
+<?php if (!empty($avisValides)) { ?>
+    <section class="container my-5">
         <h2 class="text-center mb-4">Ils nous ont fait confiance</h2>
-
-        <div class="row g-4">
-
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="etoiles mb-2" aria-label="Note : 5 sur 5">★★★★★</div>
-                        <p class="card-text fst-italic">"Un buffet délicieux pour le mariage de ma fille, tous les invités ont adoré. Livraison à l'heure et équipe très professionnelle."</p>
-                        <p class="mt-auto mb-0 fw-bold">Sophie M.</p>
-                        <small class="text-muted">Mariage - septembre 2026</small>
+        <div class="row g-4 justify-content-center">
+            <?php foreach ($avisValides as $avis) { ?>
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <p class="text-warning mb-2"><?= str_repeat('★', $avis['note']) . str_repeat('☆', 5 - $avis['note']) ?></p>
+                            <p><?= nl2br(htmlspecialchars($avis['description'])) ?></p>
+                            <p class="small text-muted mb-0">— <?= htmlspecialchars(ucfirst($avis['prenom'])) ?></p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="etoiles mb-2" aria-label="Note : 4 sur 5">★★★★☆</div>
-                        <p class="card-text fst-italic">"Très bon menu de Noël, produits frais et généreux. Seul petit bémol, le dessert un peu trop sucré à mon goût."</p>
-                        <p class="mt-auto mb-0 fw-bold">Thomas L.</p>
-                        <small class="text-muted">Noël - décembre 2025</small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body d-flex flex-column">
-                        <div class="etoiles mb-2" aria-label="Note : 5 sur 5">★★★★★</div>
-                        <p class="card-text fst-italic">"Commande passée pour un séminaire d'entreprise, tout était parfait. Le menu végétarien a été très apprécié."</p>
-                        <p class="mt-auto mb-0 fw-bold">Mohammed B.</p>
-                        <small class="text-muted">Événement pro - juin 2026</small>
-                    </div>
-                </div>
-            </div>
-
+            <?php } ?>
         </div>
-    </div>
-</section>
+    </section>
+<?php } ?>
 
 <?php require_once _ROOTPATH_ . '/templates/footer.php' ?>

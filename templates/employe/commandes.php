@@ -8,6 +8,8 @@ use App\Entity\Commande;
 ?>
 
 <div class="container my-5">
+    <?php $ongletActif = 'commandes';
+    require _ROOTPATH_ . '/templates/employe/_onglets.php'; ?>
     <h1 class="mb-4">Gestion des commandes</h1>
 
     <form method="GET" class="row g-3 mb-4 align-items-end">

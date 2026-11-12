@@ -42,6 +42,10 @@ class Controller
                         $controller = new CompteController();
                         $controller->route();
                         break;
+                    case 'employe':
+                        $controller = new EmployeController();
+                        $controller->route();
+                        break;
                     default:
                         throw new \Exception("Le controleur n'existe pas");
                         break;
