@@ -119,7 +119,7 @@ class CommandeRepository extends Repository
 */
     public function findSuivi(string $numero): array
     {
-        $query = $this->pdo->prepare('SELECT statut, date_heure, motif
+        $query = $this->pdo->prepare('SELECT statut, date_heure, motif, mode_contact
                                   FROM suivi_commande
                                   WHERE numero_commande = :numero
                                   ORDER BY date_heure ASC, suivi_id ASC');
@@ -209,6 +209,107 @@ class CommandeRepository extends Repository
             $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, numero_commande)
                                       VALUES (\'en attente\', NOW(), \'Commande modifiée par le client\', :numero)');
             $query->execute(['numero' => $numero]);
+
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /*
+    Toutes les commandes, filtrables par statut et par client
+*/
+    public function findAllForEmploye(?string $statut, ?string $client): array
+    {
+        $conditions = [];
+        $params = [];
+
+        if (!empty($statut)) {
+            $conditions[] = 'c.statut = :statut';
+            $params['statut'] = $statut;
+        }
+        if (!empty($client)) {
+            $conditions[] = '(u.nom LIKE :client1 OR u.prenom LIKE :client2 OR u.email LIKE :client3
+                              OR CONCAT(u.prenom, \' \', u.nom) LIKE :client4
+                              OR CONCAT(u.nom, \' \', u.prenom) LIKE :client5)';
+            for ($i = 1; $i <= 5; $i++) {
+                $params['client' . $i] = '%' . $client . '%';
+            }
+        }
+
+        $sql = 'SELECT c.numero_commande, c.date_prestation, c.statut, c.prix_menu, c.prix_livraison,
+                   m.titre AS menu_titre, u.nom, u.prenom, u.email
+            FROM commande c
+            JOIN menu m ON m.menu_id = c.menu_id
+            JOIN utilisateur u ON u.utilisateur_id = c.utilisateur_id';
+
+        if (!empty($conditions)) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+        $sql .= ' ORDER BY c.date_prestation ASC';
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute($params);
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
+
+    /*
+    Une commande avec les coordonnées du client (espace employé)
+*/
+    public function findOneByNumeroForEmploye(string $numero): array|bool
+    {
+        $query = $this->pdo->prepare('SELECT c.*, m.titre AS menu_titre, u.nom, u.prenom, u.email, u.telephone
+                                  FROM commande c
+                                  JOIN menu m ON m.menu_id = c.menu_id
+                                  JOIN utilisateur u ON u.utilisateur_id = c.utilisateur_id
+                                  WHERE c.numero_commande = :numero');
+        $query->execute(['numero' => $numero]);
+        return $query->fetch($this->pdo::FETCH_ASSOC);
+    }
+
+    /*
+    Changement de statut par un employé, dans une transaction
+*/
+    public function changerStatut(string $numero, string $statut, ?string $motif, ?string $modeContact): void
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            // 1. Mise à jour de la commande, sauf si elle est déjà terminée ou annulée
+            $sql = 'UPDATE commande SET statut = :statut';
+            if ($statut === 'en attente du retour de matériel') {
+                $sql .= ', pret_materiel = 1';
+            }
+            if ($statut === 'terminée') {
+                $sql .= ', restitution_materiel = pret_materiel';
+            }
+            $sql .= ' WHERE numero_commande = :numero AND statut NOT IN (\'terminée\', \'annulée\')';
+
+            $query = $this->pdo->prepare($sql);
+            $query->execute(['statut' => $statut, 'numero' => $numero]);
+            if ($query->rowCount() === 0) {
+                throw new \Exception('Le statut de cette commande ne peut plus être modifié.');
+            }
+
+            // 2. Ajout dans l'historique
+            $query = $this->pdo->prepare('INSERT INTO suivi_commande (statut, date_heure, motif, mode_contact, numero_commande)
+                                      VALUES (:statut, NOW(), :motif, :mode_contact, :numero)');
+            $query->execute([
+                'statut' => $statut,
+                'motif' => $motif,
+                'mode_contact' => $modeContact,
+                'numero' => $numero,
+            ]);
+
+            // 3. En cas d'annulation, on remet le menu en stock
+            if ($statut === 'annulée') {
+                $query = $this->pdo->prepare('UPDATE menu SET quantite_restante = quantite_restante + 1
+                                          WHERE menu_id = (SELECT menu_id FROM commande WHERE numero_commande = :numero)');
+                $query->execute(['numero' => $numero]);
+            }
 
             $this->pdo->commit();
         } catch (\Exception $e) {

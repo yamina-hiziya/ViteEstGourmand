@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Controller;
+use App\Repository\AvisRepository;
 
 
 class PageController extends Controller
@@ -15,31 +16,30 @@ class PageController extends Controller
                         $this->accueil();
                         break;
                     default:
-                        throw new \Exception("Cette action n'existe pas : ".$_GET['action']);
+                        throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
                         break;
                 }
             } else {
                 throw new \Exception("Aucune action détectée");
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             $this->render('errors/default', [
                 'error' => $e->getMessage()
             ]);
         }
-
     }
 
     /*
-    Exemple d'appel depuis l'url
-        ?controller=page&action=home
-    */
+    Page d'accueil, avec les derniers avis validés
+    Exemple d'appel depuis l'url : ?controller=page&action=accueil
+*/
     protected function accueil()
-    {   
+    {
+        $avisRepository = new AvisRepository();
+        $avisValides = $avisRepository->findValides(6);
+
         $this->render('page/accueil', [
-            'Vite&Gourmand' => "Vite&Gourmand",
-            'Bienvenue' => "John",
+            'avisValides' => $avisValides,
         ]);
-
     }
-
 }

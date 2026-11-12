@@ -42,6 +42,10 @@ class Controller
                         $controller = new CompteController();
                         $controller->route();
                         break;
+                    case 'employe':
+                        $controller = new EmployeController();
+                        $controller->route();
+                        break;
                     default:
                         throw new \Exception("Le controleur n'existe pas");
                         break;
@@ -66,6 +70,14 @@ class Controller
             if (!file_exists($filePath)) {
                 throw new \Exception("Fichier non trouvé : " . $filePath);
             } else {
+                // Les horaires sont affichés dans le pied de page de toutes les pages
+                if (!isset($params['horairesFooter'])) {
+                    try {
+                        $params['horairesFooter'] = (new \App\Repository\HoraireRepository())->findAll();
+                    } catch (\Exception $e) {
+                        $params['horairesFooter'] = [];
+                    }
+                }
                 // Extrait chaque ligne du tableau et crée des variables pour chacune
                 extract($params);
                 require_once $filePath;

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Repository;
+
 use App\Entity\Menu;
 
 class MenuRepository extends Repository
@@ -41,7 +42,8 @@ class MenuRepository extends Repository
     }
 
     //je prepare la requete pour gerer les filtres
-    public function findByFilters(array $filtres): array{
+    public function findByFilters(array $filtres): array
+    {
 
         //je prepare 2 tableau vides
         $conditions = [];
@@ -92,5 +94,82 @@ class MenuRepository extends Repository
             $menusArray[] = Menu::createAndHydrate($menu);
         }
         return $menusArray;
+    }
+
+    /*
+    Les identifiants des plats d'un menu, pour cocher les bonnes cases
+*/
+    public function findPlatIds(int $menuId): array
+    {
+        $query = $this->pdo->prepare('SELECT plat_id FROM menu_plat WHERE menu_id = :id');
+        $query->execute(['id' => $menuId]);
+        return $query->fetchAll($this->pdo::FETCH_COLUMN);
+    }
+
+    /*
+    Création ou modification d'un menu et de ses plats, dans une transaction
+*/
+    public function save(Menu $menu, array $platIds): int
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $donnees = [
+                'titre' => $menu->getTitre(),
+                'minimum' => $menu->getNombrePersonneMinimum(),
+                'prix' => $menu->getPrixParPersonne(),
+                'description' => $menu->getDescription(),
+                'stock' => $menu->getQuantiteRestante(),
+                'theme_id' => $menu->getThemeId(),
+                'regime_id' => $menu->getRegimeId(),
+                'conditions' => $menu->getConditions() ?? '',
+                'photo' => $menu->getPhoto() ?? '',
+            ];
+
+            if ($menu->getMenuId()) {
+                $query = $this->pdo->prepare('UPDATE menu SET titre = :titre, nombre_personne_minimum = :minimum,
+                    prix_par_personne = :prix, description = :description, quantite_restante = :stock,
+                    theme_id = :theme_id, regime_id = :regime_id, conditions = :conditions, photo = :photo
+                WHERE menu_id = :id');
+                $query->execute($donnees + ['id' => $menu->getMenuId()]);
+                $id = $menu->getMenuId();
+            } else {
+                $query = $this->pdo->prepare('INSERT INTO menu (titre, nombre_personne_minimum, prix_par_personne, description,
+                    quantite_restante, theme_id, regime_id, conditions, photo)
+                VALUES (:titre, :minimum, :prix, :description, :stock, :theme_id, :regime_id, :conditions, :photo)');
+                $query->execute($donnees);
+                $id = (int) $this->pdo->lastInsertId();
+            }
+
+            // On remplace les plats du menu
+            $query = $this->pdo->prepare('DELETE FROM menu_plat WHERE menu_id = :id');
+            $query->execute(['id' => $id]);
+
+            $query = $this->pdo->prepare('INSERT INTO menu_plat (menu_id, plat_id) VALUES (:menu_id, :plat_id)');
+            foreach ($platIds as $platId) {
+                $query->execute(['menu_id' => $id, 'plat_id' => $platId]);
+            }
+
+            $this->pdo->commit();
+            return $id;
+        } catch (\Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    public function estCommande(int $menuId): bool
+    {
+        $query = $this->pdo->prepare('SELECT COUNT(*) FROM commande WHERE menu_id = :id');
+        $query->execute(['id' => $menuId]);
+        return $query->fetchColumn() > 0;
+    }
+
+    public function delete(int $menuId): void
+    {
+        $query = $this->pdo->prepare('DELETE FROM menu WHERE menu_id = :id');
+        $query->execute(['id' => $menuId]);
     }
 }

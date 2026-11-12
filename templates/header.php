@@ -33,9 +33,11 @@ $mainMenu = require_once __DIR__ . '/../App/Config/menu.php';
             </ul>
             <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 justify-content-center align-items-center">
                 <?php if (User::isLogged()) { ?>
-                    <span>Bonjour <?= htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) ?></span>
-                    <a href="/index.php?controller=compte&action=commandes" class="btn btn-outline-primary">Mon espace</a>
-                    <a href="/index.php?controller=auth&action=logout" class="btn btn-outline-primary">Déconnexion</a>
+                    <span class="col-12 col-lg-auto text-center">Bonjour <?= htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) ?></span> <?php if (User::isEmploye() || User::isAdmin()) { ?>
+                        <a href="/index.php?controller=employe&action=commandes" class="btn btn-sm btn btn-outline-primary">Espace employé</a>
+                    <?php } ?>
+                    <a href="/index.php?controller=compte&action=commandes" class="btn btn-sm btn btn-outline-primary">Mon espace</a>
+                    <a href="/index.php?controller=auth&action=logout" class="btn btn-sm btn btn-outline-primary">Déconnexion</a>
                 <?php } else { ?>
                     <a href="/index.php?controller=auth&action=login" class="btn btn-outline-primary">Connexion</a>
                     <a href="/index.php?controller=user&action=register" class="btn btn-primary">Inscription</a>
