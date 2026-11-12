@@ -218,4 +218,41 @@ class CommandeRepository extends Repository
             throw $e;
         }
     }
+
+    /*
+    Toutes les commandes, filtrables par statut et par client
+*/
+    public function findAllForEmploye(?string $statut, ?string $client): array
+    {
+        $conditions = [];
+        $params = [];
+
+        if (!empty($statut)) {
+            $conditions[] = 'c.statut = :statut';
+            $params['statut'] = $statut;
+        }
+        if (!empty($client)) {
+            $conditions[] = '(u.nom LIKE :client1 OR u.prenom LIKE :client2 OR u.email LIKE :client3
+                              OR CONCAT(u.prenom, \' \', u.nom) LIKE :client4
+                              OR CONCAT(u.nom, \' \', u.prenom) LIKE :client5)';
+            for ($i = 1; $i <= 5; $i++) {
+                $params['client' . $i] = '%' . $client . '%';
+            }
+        }
+
+        $sql = 'SELECT c.numero_commande, c.date_prestation, c.statut, c.prix_menu, c.prix_livraison,
+                   m.titre AS menu_titre, u.nom, u.prenom, u.email
+            FROM commande c
+            JOIN menu m ON m.menu_id = c.menu_id
+            JOIN utilisateur u ON u.utilisateur_id = c.utilisateur_id';
+
+        if (!empty($conditions)) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+        $sql .= ' ORDER BY c.date_prestation ASC';
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute($params);
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
 }
