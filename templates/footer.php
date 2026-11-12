@@ -1,6 +1,7 @@
 <?php
 
 $mainMenu = require __DIR__ . '/../App/Config/menu.php';
+
 use App\Tools\NavigationTools;
 ?>
 
@@ -8,9 +9,9 @@ use App\Tools\NavigationTools;
 <div class="container">
     <footer class="d-flex flex-column align-items-center py-3 my-4 border-top border-dark border-2">
         <ul class="nav w-100 justify-content-center align-items-center list-unstyled mb-3">
-        <?php foreach ($mainMenu as $item) {  ?>
-                    <li><a href="/index.php?controller=<?=  $item['controller'] ?>&action=<?=  $item['action'] ?> "class="nav-link px-2 <?= NavigationTools::addActiveClass($item['controller'], $item['action']) ?>"><?= $item['label'] ?></a></li>
-                <?php } ?>
+            <?php foreach ($mainMenu as $item) {  ?>
+                <li><a href="/index.php?controller=<?= $item['controller'] ?>&action=<?= $item['action'] ?> " class="nav-link px-2 <?= NavigationTools::addActiveClass($item['controller'], $item['action']) ?>"><?= $item['label'] ?></a></li>
+            <?php } ?>
         </ul>
         <div class="w-100 d-flex flex-column flex-md-row justify-content-between align-items-center mb-3">
             <div class="mb-3 mb-md-0 text-center text-md-start">
@@ -18,8 +19,15 @@ use App\Tools\NavigationTools;
                 <p class=" mb-1 small">12 rue des Gourmets, 33000 Bordeaux, France</p>
                 <p class="mb2 small">
                     <strong>Horaires :</strong><br>
-                    Lundi au Samedi : 9h00 - 18h00<br>
-                    Dimanche : Fermé
+                    <?php foreach ($horairesFooter ?? [] as $horaire) { ?>
+                        <?= htmlspecialchars(ucfirst($horaire->getJour())) ?> :
+                        <?php if ($horaire->getHeureOuverture()) { ?>
+                            <?= substr($horaire->getHeureOuverture(), 0, 5) ?> - <?= substr($horaire->getHeureFermeture(), 0, 5) ?>
+                        <?php } else { ?>
+                            Fermé
+                        <?php } ?>
+                        <br>
+                    <?php } ?>
                 </p>
             </div>
             <div class="mb-3 mb-md-0 text-center">

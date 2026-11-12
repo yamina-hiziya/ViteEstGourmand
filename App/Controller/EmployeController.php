@@ -6,6 +6,7 @@ use App\Entity\Commande;
 use App\Entity\User;
 use App\Repository\CommandeRepository;
 use App\Repository\AvisRepository;
+use App\Repository\HoraireRepository;
 
 class EmployeController extends Controller
 {
@@ -33,6 +34,9 @@ class EmployeController extends Controller
                         break;
                     case 'moderer':
                         $this->moderer();
+                        break;
+                    case 'horaires':
+                        $this->horaires();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -159,5 +163,52 @@ class EmployeController extends Controller
 
         header('Location: index.php?controller=employe&action=avis');
         exit;
+    }
+
+    protected function horaires()
+    {
+        $horaireRepository = new HoraireRepository();
+        $errors = [];
+
+        if (isset($_POST['saveHoraires'])) {
+            $aEnregistrer = [];
+
+            foreach ($_POST['horaires'] ?? [] as $id => $donnees) {
+                $id = (int) $id;
+
+                // Jour fermé : les deux heures restent vides
+                if (!empty($donnees['ferme'])) {
+                    $aEnregistrer[$id] = ['ouverture' => null, 'fermeture' => null];
+                    continue;
+                }
+
+                $ouverture = $donnees['ouverture'] ?? '';
+                $fermeture = $donnees['fermeture'] ?? '';
+
+                if (!preg_match('/^\d{2}:\d{2}$/', $ouverture) || !preg_match('/^\d{2}:\d{2}$/', $fermeture)) {
+                    $errors[] = 'Indiquez une heure d\'ouverture et de fermeture pour chaque jour ouvert.';
+                } elseif ($ouverture >= $fermeture) {
+                    $errors[] = 'L\'heure d\'ouverture doit être avant l\'heure de fermeture.';
+                } else {
+                    $aEnregistrer[$id] = ['ouverture' => $ouverture, 'fermeture' => $fermeture];
+                }
+            }
+
+            if (empty($errors)) {
+                $horaireRepository->updateAll($aEnregistrer);
+                $_SESSION['message_succes'] = 'Les horaires ont bien été mis à jour.';
+                header('Location: index.php?controller=employe&action=horaires');
+                exit;
+            }
+        }
+
+        $succes = $_SESSION['message_succes'] ?? null;
+        unset($_SESSION['message_succes']);
+
+        $this->render('employe/horaires', [
+            'horaires' => $horaireRepository->findAll(),
+            'errors' => array_unique($errors),
+            'succes' => $succes,
+        ]);
     }
 }
