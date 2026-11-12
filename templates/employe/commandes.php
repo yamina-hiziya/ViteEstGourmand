@@ -38,15 +38,15 @@ use App\Entity\Commande;
     <?php if (empty($commandes)) { ?>
         <p>Aucune commande ne correspond à votre recherche.</p>
     <?php } else { ?>
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-md-block">
             <table class="table align-middle">
                 <thead>
                     <tr>
                         <th>N° de commande</th>
                         <th>Client</th>
-                        <th>Menu</th>
+                        <th class="d-none d-md-table-cell">Menu</th>
                         <th>Prestation</th>
-                        <th>Total</th>
+                        <th class="d-none d-md-table-cell">Total</th>
                         <th>Statut</th>
                     </tr>
                 </thead>
@@ -55,14 +55,28 @@ use App\Entity\Commande;
                         <tr>
                             <td><a href="index.php?controller=employe&action=commande&numero=<?= urlencode($c['numero_commande']) ?>"><?= htmlspecialchars($c['numero_commande']) ?></a></td>
                             <td><?= htmlspecialchars($c['prenom'] . ' ' . $c['nom']) ?><br><small class="text-muted"><?= htmlspecialchars($c['email']) ?></small></td>
-                            <td><?= htmlspecialchars($c['menu_titre']) ?></td>
+                            <td class="d-none d-md-table-cell"><?= htmlspecialchars($c['menu_titre']) ?></td>
                             <td><?= date('d/m/Y', strtotime($c['date_prestation'])) ?></td>
-                            <td><?= number_format($c['prix_menu'] + $c['prix_livraison'], 2, ',', ' ') ?> €</td>
+                            <td class="d-none d-md-table-cell"><?= number_format($c['prix_menu'] + $c['prix_livraison'], 2, ',', ' ') ?> €</td>
                             <td><?= htmlspecialchars(ucfirst($c['statut'])) ?></td>
                         </tr>
                     <?php } ?>
                 </tbody>
             </table>
+        </div>
+        <div class="d-md-none">
+            <?php foreach ($commandes as $c) { ?>
+                <a href="index.php?controller=employe&action=commande&numero=<?= urlencode($c['numero_commande']) ?>" class="card mb-3 text-decoration-none text-reset">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <strong class="small"><?= htmlspecialchars($c['numero_commande']) ?></strong>
+                            <span class="badge text-bg-secondary"><?= htmlspecialchars(ucfirst($c['statut'])) ?></span>
+                        </div>
+                        <div><?= htmlspecialchars($c['prenom'] . ' ' . $c['nom']) ?></div>
+                        <div class="small text-muted"><?= htmlspecialchars($c['menu_titre']) ?> — le <?= date('d/m/Y', strtotime($c['date_prestation'])) ?></div>
+                    </div>
+                </a>
+            <?php } ?>
         </div>
     <?php } ?>
 </div>
