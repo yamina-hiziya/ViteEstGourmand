@@ -4,9 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Commande;
 use App\Entity\User;
+use App\Entity\Plat;
 use App\Repository\CommandeRepository;
 use App\Repository\AvisRepository;
 use App\Repository\HoraireRepository;
+use App\Repository\PlatRepository;
+use App\Repository\AllergeneRepository;
 
 class EmployeController extends Controller
 {
@@ -37,6 +40,15 @@ class EmployeController extends Controller
                         break;
                     case 'horaires':
                         $this->horaires();
+                        break;
+                    case 'plats':
+                        $this->plats();
+                        break;
+                    case 'plat':
+                        $this->plat();
+                        break;
+                    case 'supprimerPlat':
+                        $this->supprimerPlat();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -210,5 +222,135 @@ class EmployeController extends Controller
             'errors' => array_unique($errors),
             'succes' => $succes,
         ]);
+    }
+
+    protected function plats()
+    {
+        $succes = $_SESSION['message_succes'] ?? null;
+        $erreur = $_SESSION['message_erreur'] ?? null;
+        unset($_SESSION['message_succes'], $_SESSION['message_erreur']);
+
+        $this->render('employe/plats', [
+            'plats' => (new PlatRepository())->findAllAvecAllergenes(),
+            'succes' => $succes,
+            'erreur' => $erreur,
+        ]);
+    }
+
+    protected function plat()
+    {
+        $platRepository = new PlatRepository();
+        $allergenes = (new AllergeneRepository())->findAll();
+        $id = (int) ($_GET['id'] ?? 0);
+
+        // Modification d'un plat existant, ou création d'un nouveau plat
+        if ($id > 0) {
+            $plat = $platRepository->findOneById($id);
+            if (!$plat) {
+                throw new \Exception('Plat introuvable.');
+            }
+            $allergenesCoches = $platRepository->findAllergeneIds($id);
+        } else {
+            $plat = new Plat();
+            $allergenesCoches = [];
+        }
+
+        $errors = [];
+
+        if (isset($_POST['savePlat'])) {
+            $titre = trim($_POST['titre_plat'] ?? '');
+            $type = $_POST['type_plat'] ?? '';
+
+            // Seuls les allergènes qui existent vraiment sont gardés
+            $idsValides = array_map(fn($a) => $a->getAllergeneId(), $allergenes);
+            $allergenesCoches = array_values(array_intersect(array_map('intval', $_POST['allergenes'] ?? []), $idsValides));
+
+            if ($titre === '') {
+                $errors[] = 'Le titre du plat est obligatoire.';
+            }
+            if (!in_array($type, ['entrée', 'plat', 'dessert'], true)) {
+                $errors[] = 'Choisissez le type du plat.';
+            }
+
+            $photo = $this->traiterPhoto($errors);
+
+            $plat->setTitrePlat($titre);
+            $plat->setTypePlat($type);
+            if ($photo !== null) {
+                $plat->setPhoto($photo);
+            }
+
+            if (empty($errors)) {
+                $platRepository->save($plat, $allergenesCoches);
+                $_SESSION['message_succes'] = 'Le plat a bien été enregistré.';
+                header('Location: index.php?controller=employe&action=plats');
+                exit;
+            }
+        }
+
+        $this->render('employe/plat_form', [
+            'plat' => $plat,
+            'allergenes' => $allergenes,
+            'allergenesCoches' => $allergenesCoches,
+            'errors' => $errors,
+        ]);
+    }
+
+    /*
+    Vérifie et enregistre la photo envoyée.
+    Renvoie le nom du fichier, ou null s'il n'y a pas de nouvelle photo.
+*/
+    protected function traiterPhoto(array &$errors): ?string
+    {
+        if (empty($_FILES['photo']['name'])) {
+            return null;
+        }
+        if ($_FILES['photo']['error'] === UPLOAD_ERR_INI_SIZE || $_FILES['photo']['error'] === UPLOAD_ERR_FORM_SIZE) {
+            $errors[] = 'La photo est trop lourde : 2 Mo maximum.';
+            return null;
+        }
+        if ($_FILES['photo']['error'] !== UPLOAD_ERR_OK) {
+            $errors[] = 'L\'envoi de la photo a échoué.';
+            return null;
+        }
+        if ($_FILES['photo']['size'] > 2 * 1024 * 1024) {
+            $errors[] = 'La photo ne doit pas dépasser 2 Mo.';
+            return null;
+        }
+
+        // On vérifie le contenu réel du fichier, pas seulement son extension
+        $typesAutorises = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $type = mime_content_type($_FILES['photo']['tmp_name']);
+        if (!isset($typesAutorises[$type])) {
+            $errors[] = 'Formats acceptés : JPEG, PNG ou WebP.';
+            return null;
+        }
+
+        // Nouveau nom aléatoire : on n'utilise jamais le nom choisi par l'utilisateur
+        $nom = 'plat-' . bin2hex(random_bytes(8)) . '.' . $typesAutorises[$type];
+        $destination = _ROOTPATH_ . '/public/assets/images/plats/' . $nom;
+
+        if (!move_uploaded_file($_FILES['photo']['tmp_name'], $destination)) {
+            $errors[] = 'Impossible d\'enregistrer la photo.';
+            return null;
+        }
+
+        return $nom;
+    }
+
+    protected function supprimerPlat()
+    {
+        $id = (int) ($_POST['plat_id'] ?? 0);
+        $platRepository = new PlatRepository();
+
+        if ($platRepository->estCommande($id)) {
+            $_SESSION['message_erreur'] = 'Ce plat a déjà été commandé : il ne peut pas être supprimé.';
+        } else {
+            $platRepository->delete($id);
+            $_SESSION['message_succes'] = 'Le plat a bien été supprimé.';
+        }
+
+        header('Location: index.php?controller=employe&action=plats');
+        exit;
     }
 }
