@@ -220,7 +220,7 @@ class User extends Entity
     /*
         Pourrait être déplacé dans une classe UserValidator
     */
-    public function validate(): array
+    public function validate(bool $verifierMotDePasse = true): array
     {
         $errors = [];
         if (empty($this->getNom())) {
@@ -246,10 +246,12 @@ class User extends Entity
         if (empty($this->getPays())) {
             $errors['pays'] = 'Le champ pays ne doit pas être vide';
         }
-        if (empty($this->getPassword())) {
-            $errors['password'] = 'Le champ mot de passe ne doit pas être vide';
-        } else if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $this->getPassword())) {
-            $errors['password'] = 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
+        if ($verifierMotDePasse) {
+            if (empty($this->getPassword())) {
+                $errors['password'] = 'Le champ mot de passe ne doit pas être vide';
+            } else if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $this->getPassword())) {
+                $errors['password'] = 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
+            }
         }
         return $errors;
     }

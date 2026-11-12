@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\CommandeRepository;
 use App\Repository\AvisRepository;
+use App\Repository\UserRepository;
 
 class CompteController extends Controller
 {
@@ -30,6 +31,9 @@ class CompteController extends Controller
                         break;
                     case 'avis':
                         $this->avis();
+                        break;
+                    case 'profil':
+                        $this->profil();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -127,5 +131,42 @@ class CompteController extends Controller
 
         header('Location: index.php?controller=compte&action=detail&numero=' . urlencode($numero));
         exit;
+    }
+
+    protected function profil()
+    {
+        $userRepository = new UserRepository();
+        $user = $userRepository->findOneById(User::getCurrentUserId());
+        $errors = [];
+
+        if (isset($_POST['saveProfil'])) {
+            // On ne garde que les champs modifiables
+            $champsAutorises = ['nom', 'prenom', 'telephone', 'adresse_postale', 'ville', 'pays'];
+            $donnees = array_map('trim', array_intersect_key($_POST, array_flip($champsAutorises)));
+
+            $user->hydrate($donnees);
+            $errors = $user->validate(false);
+
+            if (empty($errors)) {
+                $userRepository->persist($user);
+
+                // On met à jour la session, pour que l'en-tête affiche le bon prénom
+                $_SESSION['user']['prenom'] = $user->getPrenom();
+                $_SESSION['user']['nom'] = $user->getNom();
+
+                $_SESSION['message_succes'] = 'Vos informations ont bien été mises à jour.';
+                header('Location: index.php?controller=compte&action=profil');
+                exit;
+            }
+        }
+
+        $succes = $_SESSION['message_succes'] ?? null;
+        unset($_SESSION['message_succes']);
+
+        $this->render('compte/profil', [
+            'user' => $user,
+            'errors' => $errors,
+            'succes' => $succes,
+        ]);
     }
 }

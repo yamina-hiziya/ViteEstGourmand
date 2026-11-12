@@ -13,6 +13,10 @@ $couleurs = [
 ?>
 
 <div class="container my-5">
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a href="index.php?controller=compte&action=commandes" class="btn btn-primary">Mes commandes</a>
+        <a href="index.php?controller=compte&action=profil" class="btn btn-outline-primary">Mes informations</a>
+    </div>
     <h1 class="mb-4">Mes commandes</h1>
 
     <?php if (empty($commandes)) { ?>
