@@ -5,11 +5,15 @@ namespace App\Controller;
 use App\Entity\Commande;
 use App\Entity\User;
 use App\Entity\Plat;
+use App\Entity\Menu;
 use App\Repository\CommandeRepository;
 use App\Repository\AvisRepository;
 use App\Repository\HoraireRepository;
 use App\Repository\PlatRepository;
 use App\Repository\AllergeneRepository;
+use App\Repository\MenuRepository;
+use App\Repository\ThemeRepository;
+use App\Repository\RegimeRepository;
 
 class EmployeController extends Controller
 {
@@ -49,6 +53,15 @@ class EmployeController extends Controller
                         break;
                     case 'supprimerPlat':
                         $this->supprimerPlat();
+                        break;
+                    case 'menus':
+                        $this->menus();
+                        break;
+                    case 'menu':
+                        $this->menu();
+                        break;
+                    case 'supprimerMenu':
+                        $this->supprimerMenu();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -272,8 +285,7 @@ class EmployeController extends Controller
                 $errors[] = 'Choisissez le type du plat.';
             }
 
-            $photo = $this->traiterPhoto($errors);
-
+            $photo = $this->traiterPhoto($errors, 'plats', 'plat');
             $plat->setTitrePlat($titre);
             $plat->setTypePlat($type);
             if ($photo !== null) {
@@ -300,7 +312,7 @@ class EmployeController extends Controller
     Vérifie et enregistre la photo envoyée.
     Renvoie le nom du fichier, ou null s'il n'y a pas de nouvelle photo.
 */
-    protected function traiterPhoto(array &$errors): ?string
+    protected function traiterPhoto(array &$errors, string $dossier, string $prefixe): ?string
     {
         if (empty($_FILES['photo']['name'])) {
             return null;
@@ -327,8 +339,8 @@ class EmployeController extends Controller
         }
 
         // Nouveau nom aléatoire : on n'utilise jamais le nom choisi par l'utilisateur
-        $nom = 'plat-' . bin2hex(random_bytes(8)) . '.' . $typesAutorises[$type];
-        $destination = _ROOTPATH_ . '/public/assets/images/plats/' . $nom;
+        $nom = $prefixe . '-' . bin2hex(random_bytes(8)) . '.' . $typesAutorises[$type];
+        $destination = _ROOTPATH_ . '/public/assets/images/' . $dossier . '/' . $nom;
 
         if (!move_uploaded_file($_FILES['photo']['tmp_name'], $destination)) {
             $errors[] = 'Impossible d\'enregistrer la photo.';
@@ -351,6 +363,132 @@ class EmployeController extends Controller
         }
 
         header('Location: index.php?controller=employe&action=plats');
+        exit;
+    }
+
+    protected function menus()
+    {
+        $succes = $_SESSION['message_succes'] ?? null;
+        $erreur = $_SESSION['message_erreur'] ?? null;
+        unset($_SESSION['message_succes'], $_SESSION['message_erreur']);
+
+        $this->render('employe/menus', [
+            'menus' => (new MenuRepository())->findByFilters([]),
+            'succes' => $succes,
+            'erreur' => $erreur,
+        ]);
+    }
+
+    protected function menu()
+    {
+        $menuRepository = new MenuRepository();
+        $themes = (new ThemeRepository())->findAll();
+        $regimes = (new RegimeRepository())->findAll();
+        $plats = (new PlatRepository())->findAllAvecAllergenes();
+        $id = (int) ($_GET['id'] ?? 0);
+
+        if ($id > 0) {
+            $menu = $menuRepository->findOneById($id);
+            if (!$menu) {
+                throw new \Exception('Menu introuvable.');
+            }
+            $platsCoches = $menuRepository->findPlatIds($id);
+        } else {
+            $menu = new Menu();
+            $platsCoches = [];
+        }
+
+        $errors = [];
+
+        if (isset($_POST['saveMenu'])) {
+            $titre = trim($_POST['titre'] ?? '');
+            $description = trim($_POST['description'] ?? '');
+            $conditions = trim($_POST['conditions'] ?? '');
+            $minimum = (int) ($_POST['nombre_personne_minimum'] ?? 0);
+            $prix = (float) str_replace(',', '.', $_POST['prix_par_personne'] ?? '0');
+            $stock = (int) ($_POST['quantite_restante'] ?? -1);
+            $themeId = (int) ($_POST['theme_id'] ?? 0);
+            $regimeId = (int) ($_POST['regime_id'] ?? 0);
+
+            // Seuls les plats qui existent vraiment sont gardés
+            $platsParId = [];
+            foreach ($plats as $plat) {
+                $platsParId[$plat->getPlatId()] = $plat;
+            }
+            $platsCoches = array_values(array_intersect(array_map('intval', $_POST['plats'] ?? []), array_keys($platsParId)));
+
+            if ($titre === '' || $description === '') {
+                $errors[] = 'Le titre et la description sont obligatoires.';
+            }
+            if ($minimum < 1) {
+                $errors[] = 'Le nombre de personnes minimum doit être d\'au moins 1.';
+            }
+            if ($prix <= 0) {
+                $errors[] = 'Le prix par personne doit être supérieur à 0.';
+            }
+            if ($stock < 0) {
+                $errors[] = 'Le stock doit être de 0 ou plus.';
+            }
+            if (!in_array($themeId, array_map(fn($t) => $t->getThemeId(), $themes), true)) {
+                $errors[] = 'Choisissez un thème.';
+            }
+            if (!in_array($regimeId, array_map(fn($r) => $r->getRegimeId(), $regimes), true)) {
+                $errors[] = 'Choisissez un régime.';
+            }
+
+            // Au moins une entrée, un plat et un dessert
+            $typesCoches = array_map(fn($pid) => $platsParId[$pid]->getTypePlat(), $platsCoches);
+            foreach (['entrée', 'plat', 'dessert'] as $type) {
+                if (!in_array($type, $typesCoches, true)) {
+                    $errors[] = 'Le menu doit proposer au moins un choix de type « ' . $type . ' ».';
+                }
+            }
+
+            $photo = $this->traiterPhoto($errors, 'menu', 'menu');
+
+            $menu->setTitre($titre);
+            $menu->setDescription($description);
+            $menu->setConditions($conditions);
+            $menu->setNombrePersonneMinimum($minimum);
+            $menu->setPrixParPersonne($prix);
+            $menu->setQuantiteRestante($stock);
+            $menu->setThemeId($themeId);
+            $menu->setRegimeId($regimeId);
+            if ($photo !== null) {
+                $menu->setPhoto($photo);
+            }
+
+            if (empty($errors)) {
+                $menuRepository->save($menu, $platsCoches);
+                $_SESSION['message_succes'] = 'Le menu a bien été enregistré.';
+                header('Location: index.php?controller=employe&action=menus');
+                exit;
+            }
+        }
+
+        $this->render('employe/menu_form', [
+            'menu' => $menu,
+            'themes' => $themes,
+            'regimes' => $regimes,
+            'plats' => $plats,
+            'platsCoches' => $platsCoches,
+            'errors' => $errors,
+        ]);
+    }
+
+    protected function supprimerMenu()
+    {
+        $id = (int) ($_POST['menu_id'] ?? 0);
+        $menuRepository = new MenuRepository();
+
+        if ($menuRepository->estCommande($id)) {
+            $_SESSION['message_erreur'] = 'Ce menu a déjà été commandé : il ne peut pas être supprimé. Pour le retirer de la vente, mettez son stock à 0.';
+        } else {
+            $menuRepository->delete($id);
+            $_SESSION['message_succes'] = 'Le menu a bien été supprimé.';
+        }
+
+        header('Location: index.php?controller=employe&action=menus');
         exit;
     }
 }

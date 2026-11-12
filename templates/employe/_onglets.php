@@ -4,6 +4,7 @@ $onglets = [
     'avis' => 'Avis',
     'horaires' => 'Horaires',
     'plats' => 'Plats',
+    'menus' => 'Menus',
 ];
 ?>
 <div class="d-flex flex-wrap gap-2 mb-4">
