@@ -5,6 +5,17 @@ namespace App\Entity;
 
 class Commande extends Entity
 {
+    // La liste des états possibles d'une commande, dans l'ordre du parcours
+    const STATUTS = [
+        'en attente',
+        'accepté',
+        'en préparation',
+        'en cours de livraison',
+        'livré',
+        'en attente du retour de matériel',
+        'terminée',
+        'annulée',
+    ];
 
     protected ?string $numero_commande = null;
     protected ?string $date_commande = null;
