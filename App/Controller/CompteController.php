@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\CommandeRepository;
 use App\Repository\AvisRepository;
 use App\Repository\UserRepository;
+use App\Repository\StatistiqueRepository;
 
 class CompteController extends Controller
 {
@@ -92,6 +93,11 @@ class CompteController extends Controller
         $numero = $_POST['numero_commande'] ?? '';
         $commandeRepository = new CommandeRepository();
         $commandeRepository->annuler($numero, User::getCurrentUserId());
+        try {
+            (new StatistiqueRepository())->changerStatut($numero, 'annulée');
+        } catch (\Exception $e) {
+            // MySQL reste la référence : les statistiques pourront être resynchronisées
+        }
 
         $_SESSION['message_succes'] = 'Votre commande a bien été annulée.';
         header('Location: index.php?controller=compte&action=detail&numero=' . urlencode($numero));

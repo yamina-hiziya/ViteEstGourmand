@@ -319,4 +319,18 @@ class CommandeRepository extends Repository
             throw $e;
         }
     }
+
+    /*
+    Toutes les commandes, pour les copier dans MongoDB
+    */
+    public function findAllPourStatistiques(): array
+    {
+        $query = $this->pdo->prepare('SELECT c.numero_commande, c.menu_id, m.titre AS menu_titre,
+                                         c.prix_menu + c.prix_livraison AS chiffre_affaires,
+                                         c.statut, c.date_commande
+                                  FROM commande c
+                                  JOIN menu m ON m.menu_id = c.menu_id');
+        $query->execute();
+        return $query->fetchAll($this->pdo::FETCH_ASSOC);
+    }
 }
