@@ -62,4 +62,29 @@ class UserRepository extends Repository
 
         return $query->execute();
     }
+
+    /*
+    Tous les comptes employés (role_id = 2)
+*/
+    public function findAllEmployes(): array
+    {
+        $query = $this->pdo->prepare('SELECT * FROM utilisateur WHERE role_id = 2 ORDER BY nom, prenom');
+        $query->execute();
+        $employes = [];
+        foreach ($query->fetchAll($this->pdo::FETCH_ASSOC) as $employe) {
+            $employes[] = User::createAndHydrate($employe);
+        }
+        return $employes;
+    }
+
+    /*
+    Active ou désactive un compte, seulement s'il s'agit d'un employé
+*/
+    public function changerActif(int $utilisateurId, bool $actif): bool
+    {
+        $query = $this->pdo->prepare('UPDATE utilisateur SET actif = :actif
+                                  WHERE utilisateur_id = :id AND role_id = 2');
+        $query->execute(['actif' => $actif ? 1 : 0, 'id' => $utilisateurId]);
+        return $query->rowCount() > 0;
+    }
 }

@@ -33,7 +33,11 @@ $mainMenu = require_once __DIR__ . '/../App/Config/menu.php';
             </ul>
             <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 justify-content-center align-items-center">
                 <?php if (User::isLogged()) { ?>
-                    <span class="col-12 col-lg-auto text-center">Bonjour <?= htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) ?></span> <?php if (User::isEmploye() || User::isAdmin()) { ?>
+                    <span class="col-12 col-lg-auto text-center">Bonjour <?= htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) ?></span> 
+                    <?php if (User::isEmploye() || User::isAdmin()) { ?>
+                        <?php if (User::isAdmin()) { ?>
+                            <a href="/index.php?controller=admin&action=employes" class="btn btn-sm btn-outline-primary">Administration</a>
+                        <?php } ?>
                         <a href="/index.php?controller=employe&action=commandes" class="btn btn-sm btn btn-outline-primary">Espace employé</a>
                     <?php } ?>
                     <a href="/index.php?controller=compte&action=commandes" class="btn btn-sm btn btn-outline-primary">Mon espace</a>
