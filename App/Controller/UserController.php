@@ -75,7 +75,7 @@ class UserController extends Controller
                     Mailer::envoyer(
                         $user->getEmail(),
                         'Bienvenue chez Vite & Gourmand',
-                        '<p>Bonjour ' . htmlspecialchars($user->getPrenom()) . ',</p>
+                        '<p>Bonjour ' . htmlspecialchars(ucfirst($user->getPrenom())) . ',</p>
                             <p>Votre compte a bien été créé. Vous pouvez dès maintenant découvrir nos menus et passer commande pour vos événements.</p>
                             <p>À très bientôt,<br>Julie et José</p>'
                     );

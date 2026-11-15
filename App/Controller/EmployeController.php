@@ -15,6 +15,7 @@ use App\Repository\MenuRepository;
 use App\Repository\ThemeRepository;
 use App\Repository\RegimeRepository;
 use App\Repository\StatistiqueRepository;
+use App\Tools\Mailer;
 
 class EmployeController extends Controller
 {
@@ -158,6 +159,35 @@ class EmployeController extends Controller
             (new StatistiqueRepository())->changerStatut($numero, $statut);
         } catch (\Exception $e) {
             // MySQL reste la référence
+        }
+        // Mails au client selon le nouveau statut
+        if (in_array($statut, ['en attente du retour de matériel', 'terminée'], true)) {
+            $commande = $commandeRepository->findOneByNumeroForEmploye($numero);
+            $prenom = htmlspecialchars(ucfirst($commande['prenom']));
+            $numeroHtml = htmlspecialchars($numero);
+
+            if ($statut === 'en attente du retour de matériel') {
+                Mailer::envoyer(
+                    $commande['email'],
+                    'Restitution du matériel — commande ' . $numero,
+                    '<p>Bonjour ' . $prenom . ',</p>
+                <p>Du matériel vous a été prêté pour votre commande <strong>' . $numeroHtml . '</strong>.</p>
+                <p>Merci de le restituer sous <strong>10 jours ouvrés</strong>. Passé ce délai, des frais de <strong>600 €</strong> vous seront facturés, conformément à nos conditions générales de vente.</p>
+                <p>Pour organiser le retour du matériel, merci de reprendre contact avec nous.</p>'
+                );
+            }
+
+            if ($statut === 'terminée') {
+                $lien = Mailer::url('index.php?controller=compte&action=detail&numero=' . urlencode($numero));
+                Mailer::envoyer(
+                    $commande['email'],
+                    'Votre avis nous intéresse — commande ' . $numero,
+                    '<p>Bonjour ' . $prenom . ',</p>
+                <p>Votre commande <strong>' . $numeroHtml . '</strong> est terminée. Nous espérons que vous et vos invités vous êtes régalés !</p>
+                <p>Connectez-vous à votre compte pour nous laisser une note et un commentaire :</p>
+                <p><a href="' . htmlspecialchars($lien) . '" style="background: #1B4A8A; color: #ffffff; padding: 10px 16px; border-radius: 6px; text-decoration: none;">Donner mon avis</a></p>'
+                );
+            }
         }
 
         $_SESSION['message_succes'] = 'Le statut de la commande est maintenant : ' . $statut . '.';
