@@ -14,6 +14,7 @@ use App\Repository\AllergeneRepository;
 use App\Repository\MenuRepository;
 use App\Repository\ThemeRepository;
 use App\Repository\RegimeRepository;
+use App\Repository\StatistiqueRepository;
 
 class EmployeController extends Controller
 {
@@ -153,6 +154,11 @@ class EmployeController extends Controller
             $motif !== '' ? $motif : null,
             $modeContact !== '' ? $modeContact : null
         );
+        try {
+            (new StatistiqueRepository())->changerStatut($numero, $statut);
+        } catch (\Exception $e) {
+            // MySQL reste la référence
+        }
 
         $_SESSION['message_succes'] = 'Le statut de la commande est maintenant : ' . $statut . '.';
         header($retour);

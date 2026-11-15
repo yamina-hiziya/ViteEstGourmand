@@ -7,6 +7,7 @@ use App\Repository\MenuRepository;
 use App\Repository\PlatRepository;
 use App\Repository\UserRepository;
 use App\Repository\CommandeRepository;
+use App\Repository\StatistiqueRepository;
 use App\Entity\Commande;
 use App\Tools\GeoTools;
 
@@ -126,6 +127,7 @@ class CommandeController extends Controller
             if (!empty($_SESSION['commande_en_cours']['numero_commande'])) {
                 $numero = $_SESSION['commande_en_cours']['numero_commande'];
                 $commandeRepository->modifier($numero, User::getCurrentUserId(), $_SESSION['commande_en_cours']);
+                $this->enregistrerStatistique($numero, $_SESSION['commande_en_cours']);
 
                 unset($_SESSION['commande_en_cours']);
                 $_SESSION['message_succes'] = 'Votre commande a bien été modifiée.';
@@ -133,6 +135,7 @@ class CommandeController extends Controller
                 exit;
             }
             $numero = $commandeRepository->creer($_SESSION['commande_en_cours'], User::getCurrentUserId());
+            $this->enregistrerStatistique($numero, $_SESSION['commande_en_cours']);
 
             // La commande est enregistrée : on vide la session et on redirige
             unset($_SESSION['commande_en_cours']);
@@ -239,6 +242,7 @@ class CommandeController extends Controller
             'errors' => [],
             'commande' => [
                 'menu_id' => $menu->getMenuId(),
+                'menu_titre' => $menu->getTitre(),
                 'adresse_livraison' => $adresse,
                 'ville_livraison' => $point['ville'],
                 'date_prestation' => $date,
@@ -317,6 +321,25 @@ class CommandeController extends Controller
             $this->render('errors/default', [
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+
+    /*
+    Copie la commande dans MongoDB pour les statistiques.
+    Si MongoDB ne répond pas, la commande reste enregistrée dans MySQL.
+*/
+    protected function enregistrerStatistique(string $numero, array $commande): void
+    {
+        try {
+            (new StatistiqueRepository())->enregistrerCommande(
+                $numero,
+                (int) $commande['menu_id'],
+                $commande['menu_titre'],
+                (float) $commande['prix_menu'] + (float) $commande['prix_livraison'],
+                'en attente'
+            );
+        } catch (\Exception $e) {
+            // MySQL reste la référence : les statistiques pourront être resynchronisées
         }
     }
 }
