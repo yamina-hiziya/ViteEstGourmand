@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Repository\StatistiqueRepository;
+use App\Repository\MenuRepository;
+use App\Repository\CommandeRepository;
 
 class AdminController extends Controller
 {
@@ -21,6 +24,12 @@ class AdminController extends Controller
                         break;
                     case 'activer':
                         $this->activer();
+                        break;
+                    case 'statistiques':
+                        $this->statistiques();
+                        break;
+                    case 'synchroniser':
+                        $this->synchroniser();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -92,6 +101,65 @@ class AdminController extends Controller
         }
 
         header('Location: index.php?controller=admin&action=employes');
+        exit;
+    }
+
+    protected function statistiques()
+    {
+        $menuId = (int) ($_GET['menu_id'] ?? 0) ?: null;
+        $debut = $_GET['debut'] ?? '';
+        $fin = $_GET['fin'] ?? '';
+
+        // On n'accepte que des dates au format AAAA-MM-JJ
+        $debut = preg_match('/^\d{4}-\d{2}-\d{2}$/', $debut) ? $debut : null;
+        $fin = preg_match('/^\d{4}-\d{2}-\d{2}$/', $fin) ? $fin : null;
+
+        $statistiques = [];
+        $erreur = null;
+        try {
+            $statistiques = (new StatistiqueRepository())->statistiquesParMenu($menuId, $debut, $fin);
+        } catch (\Exception $e) {
+            $erreur = 'Les statistiques sont momentanément indisponibles.';
+        }
+
+        $succes = $_SESSION['message_succes'] ?? null;
+        unset($_SESSION['message_succes']);
+
+        $this->render('admin/statistiques', [
+            'statistiques' => $statistiques,
+            'totalCommandes' => array_sum(array_column($statistiques, 'nb_commandes')),
+            'totalChiffreAffaires' => array_sum(array_column($statistiques, 'chiffre_affaires')),
+            'menus' => (new MenuRepository())->findAll(),
+            'menuId' => $menuId,
+            'debut' => $debut,
+            'fin' => $fin,
+            'erreur' => $erreur,
+            'succes' => $succes,
+        ]);
+    }
+
+    protected function synchroniser()
+    {
+        if (!isset($_POST['synchroniser'])) {
+            throw new \Exception('Action non autorisée.');
+        }
+
+        $statistiqueRepository = new StatistiqueRepository();
+        $commandes = (new CommandeRepository())->findAllPourStatistiques();
+
+        foreach ($commandes as $commande) {
+            $statistiqueRepository->enregistrerCommande(
+                $commande['numero_commande'],
+                (int) $commande['menu_id'],
+                $commande['menu_titre'],
+                (float) $commande['chiffre_affaires'],
+                $commande['statut'],
+                $commande['date_commande']
+            );
+        }
+
+        $_SESSION['message_succes'] = count($commandes) . ' commandes synchronisées avec MongoDB.';
+        header('Location: index.php?controller=admin&action=statistiques');
         exit;
     }
 }

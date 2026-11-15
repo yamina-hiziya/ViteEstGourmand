@@ -5,6 +5,8 @@
 ?>
 
 <div class="container my-5">
+    <?php $ongletActif = 'employes';
+    require _ROOTPATH_ . '/templates/admin/_onglets.php'; ?>
     <h1 class="mb-4">Comptes employés</h1>
 
     <?php if (!empty($succes)) { ?>
