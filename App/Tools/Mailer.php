@@ -44,7 +44,6 @@ class Mailer
 
             $mail->send();
             return true;
-
         } catch (Exception $e) {
             return false;
         }
@@ -70,5 +69,15 @@ class Mailer
                 </div>
             </div>
         </div>';
+    }
+
+    /*
+    Construit une adresse complète (http://localhost:8095/index.php?...),
+    valable en local comme en production
+*/
+    public static function url(string $chemin): string
+    {
+        $protocole = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        return $protocole . '://' . $_SERVER['HTTP_HOST'] . '/' . ltrim($chemin, '/');
     }
 }
