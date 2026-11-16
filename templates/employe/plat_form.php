@@ -16,6 +16,7 @@
             <?php } ?>
 
             <form method="POST" enctype="multipart/form-data">
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="mb-3">
                     <label for="titre_plat" class="form-label">Titre</label>
                     <input type="text" id="titre_plat" name="titre_plat" class="form-control" value="<?= htmlspecialchars($plat->getTitrePlat() ?? '') ?>" required>

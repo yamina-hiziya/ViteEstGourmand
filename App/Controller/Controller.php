@@ -4,12 +4,17 @@ namespace App\Controller;
 
 use App\Controller\ContactController;
 use App\Controller\CommandeController;
+use App\Tools\Csrf;
 
 class Controller
 {
     public function route(): void
     {
         try {
+            // Protection CSRF : toute requête POST doit contenir le bon jeton
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                Csrf::verifier();
+            }
             if (isset($_GET['controller'])) {
                 switch ($_GET['controller']) {
                     case 'page':

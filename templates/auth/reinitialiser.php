@@ -13,6 +13,7 @@
                 <a href="index.php?controller=auth&action=oubli">Demander un nouveau lien</a>
             <?php } else { ?>
                 <form method="POST" novalidate>
+                <?= \App\Tools\Csrf::champ() ?>
                     <div class="mb-3">
                         <label for="password" class="form-label">Nouveau mot de passe</label>
                         <input type="password" id="password" name="password" class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>" required aria-describedby="aidePassword">

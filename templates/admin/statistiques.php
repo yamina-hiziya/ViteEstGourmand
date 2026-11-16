@@ -16,6 +16,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <h1 class="mb-0">Statistiques</h1>
         <form method="POST" action="index.php?controller=admin&action=synchroniser">
+        <?= \App\Tools\Csrf::champ() ?>
             <button type="submit" name="synchroniser" class="btn btn-outline-secondary">Synchroniser avec MongoDB</button>
         </form>
     </div>

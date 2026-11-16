@@ -81,6 +81,7 @@ $types = ['entrée' => 'Entrées', 'plat' => 'Plats', 'dessert' => 'Desserts'];
             <?php } ?>
 
             <form method="POST" action="index.php?controller=commande&action=confirm" class="d-flex gap-2 justify-content-end">
+            <?= \App\Tools\Csrf::champ() ?>
                 <?php $lienModifier = isset($commande['numero_commande'])
                     ? 'index.php?controller=commande&action=modifier&numero=' . urlencode($commande['numero_commande'])
                     : 'index.php?controller=commande&action=create&menu_id=' . $menu->getMenuId(); ?>

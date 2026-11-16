@@ -63,6 +63,7 @@ $total = $commande['prix_menu'] + $commande['prix_livraison'];
             <?php if ($commande['statut'] === 'en attente') { ?>
                 <a href="index.php?controller=commande&action=modifier&numero=<?= urlencode($commande['numero_commande']) ?>" class="btn btn-outline-primary mb-2">Modifier ma commande</a>
                 <form method="POST" action="index.php?controller=compte&action=annuler" onsubmit="return confirm('Voulez-vous vraiment annuler cette commande ?');">
+                <?= \App\Tools\Csrf::champ() ?>
                     <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
                     <button type="submit" name="annulerCommande" class="btn btn-outline-danger">Annuler ma commande</button>
                 </form>
@@ -81,6 +82,7 @@ $total = $commande['prix_menu'] + $commande['prix_livraison'];
                     <div class="card-body">
                         <h2 class="h5">Donnez votre avis</h2>
                         <form method="POST" action="index.php?controller=compte&action=avis">
+                        <?= \App\Tools\Csrf::champ() ?>
                             <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
                             <div class="mb-3">
                                 <label for="note" class="form-label">Note</label>

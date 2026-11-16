@@ -18,7 +18,7 @@ $types = ['entrée' => 'Entrées', 'plat' => 'Plats', 'dessert' => 'Desserts'];
     <?php } ?>
 
     <form method="POST" novalidate>
-
+    <?= \App\Tools\Csrf::champ() ?>
         <h2 class="h5 mt-4">Vos informations</h2>
         <div class="row g-3 mb-3">
             <div class="col-md-6">

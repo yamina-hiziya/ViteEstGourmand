@@ -19,6 +19,7 @@ $types = ['entrée' => 'Entrées', 'plat' => 'Plats', 'dessert' => 'Desserts'];
             <?php } ?>
 
             <form method="POST" enctype="multipart/form-data">
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="mb-3">
                     <label for="titre" class="form-label">Titre</label>
                     <input type="text" id="titre" name="titre" class="form-control" value="<?= htmlspecialchars($menu->getTitre() ?? '') ?>" required>

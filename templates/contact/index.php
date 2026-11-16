@@ -16,6 +16,7 @@
             <?php } ?>
 
             <form method="POST" novalidate>
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="mb-3">
                     <label for="titre" class="form-label">Titre</label>
                     <input type="text" id="titre" name="titre" maxlength="150" class="form-control <?= isset($errors['titre']) ? 'is-invalid' : '' ?>" value="<?= htmlspecialchars($_POST['titre'] ?? '') ?>" required>

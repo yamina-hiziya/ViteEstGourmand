@@ -85,6 +85,7 @@ $modifiable = !in_array($commande['statut'], ['terminée', 'annulée'], true);
                     <div class="card-body">
                         <h2 class="h5">Changer le statut</h2>
                         <form method="POST" action="index.php?controller=employe&action=statut">
+                        <?= \App\Tools\Csrf::champ() ?>
                             <input type="hidden" name="numero_commande" value="<?= htmlspecialchars($commande['numero_commande']) ?>">
                             <div class="row g-3">
                                 <div class="col-md-4">

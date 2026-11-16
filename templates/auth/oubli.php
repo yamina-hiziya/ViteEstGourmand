@@ -14,6 +14,7 @@
             <?php } else { ?>
                 <p>Indiquez l'adresse email de votre compte : nous vous enverrons un lien pour choisir un nouveau mot de passe.</p>
                 <form method="POST">
+                <?= \App\Tools\Csrf::champ() ?>
                     <div class="form-floating mb-3">
                         <input type="email" id="email" name="email" class="form-control" placeholder="nom@exemple.com" required>
                         <label for="email">Adresse email</label>

@@ -19,6 +19,7 @@
             <?php } ?>
 
             <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary" method="POST" action="index.php?controller=auth&action=login">
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="form-floating mb-3">
                     <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" value="<?= htmlspecialchars($emailPrerempli ?? '') ?>" required>
                     <label for="email">Adresse e-mail</label>
