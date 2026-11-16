@@ -172,4 +172,25 @@ class MenuRepository extends Repository
         $query = $this->pdo->prepare('DELETE FROM menu WHERE menu_id = :id');
         $query->execute(['id' => $menuId]);
     }
+
+    /*
+    Quelques menus disponibles, choisis au hasard, pour la page d'accueil
+*/
+    public function findALaUne(int $limite): array
+    {
+        $query = $this->pdo->prepare('SELECT menu.*, theme.libelle AS theme_libelle, regime.libelle AS regime_libelle
+                                    FROM menu
+                                    JOIN theme ON menu.theme_id = theme.theme_id
+                                    JOIN regime ON menu.regime_id = regime.regime_id
+                                    WHERE menu.quantite_restante > 0
+                                    ORDER BY RAND()
+                                    LIMIT :limite');
+        $query->bindValue(':limite', $limite, $this->pdo::PARAM_INT);
+        $query->execute();
+        $menus = [];
+        foreach ($query->fetchAll($this->pdo::FETCH_ASSOC) as $menu) {
+            $menus[] = Menu::createAndHydrate($menu);
+        }
+        return $menus;
+    }
 }
