@@ -11,7 +11,7 @@ class Mailer
         Envoie un mail au format HTML.
         Renvoie true si l'envoi a réussi, false sinon (sans bloquer le site).
     */
-    public static function envoyer(string $destinataire, string $sujet, string $contenuHtml): bool
+    public static function envoyer(string $destinataire, string $sujet, string $contenuHtml, ?string $repondreA = null): bool
     {
         $config = require _ROOTPATH_ . '/App/Config/mail_config.php';
         $mail = new PHPMailer(true);
@@ -37,6 +37,9 @@ class Mailer
             // Expéditeur, destinataire et contenu
             $mail->setFrom($config['from_email'], $config['from_name']);
             $mail->addAddress($destinataire);
+            if ($repondreA !== null) {
+                $mail->addReplyTo($repondreA);
+            }
             $mail->isHTML(true);
             $mail->Subject = $sujet;
             $mail->Body = self::gabarit($sujet, $contenuHtml);

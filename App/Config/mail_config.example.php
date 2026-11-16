@@ -10,4 +10,5 @@ return [
     'secure' => '',
     'from_email' => 'vitegourmand.projet@gmail.com',
     'from_name' => 'Vite & Gourmand',
+    'contact_email' => 'vitegourmand.projet@gmail.com',
 ];
