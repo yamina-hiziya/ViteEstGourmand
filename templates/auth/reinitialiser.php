@@ -1,5 +1,6 @@
 <?php require_once _ROOTPATH_ . '/templates/header.php';
 /** @var array $errors */
+/** @var bool $valide */
 ?>
 
 <div class="container my-5">

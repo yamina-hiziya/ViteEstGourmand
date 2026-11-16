@@ -20,32 +20,20 @@
         <div class="feature col text-center">
             <div class="feature-icon mb-3">🥗</div>
             <h3 class="fs-2 text-body-emphasis text-center"> ★ Entrées</h3>
-            <p>Des entrées fraîches et savoureuses pour bien commencer votre repas.</p> <a href="#" class="icon-link">
-                Call to action
-                <svg class="bi" aria-hidden="true">
-                    <use xlink:href="#chevron-right"></use>
-                </svg> </a>
+            <p>Des entrées fraîches et savoureuses pour bien commencer votre repas.</p>
         </div>
         <div class="feature col text-center">
             <div class="feature-icon mb-3">🍖</div>
             <h3 class="fs-2 text-body-emphasis text-center"> ★ Plats</h3>
-            <p>Des plats généreux préparés avec des produits de qualité.</p> <a href="#" class="icon-link">
-                Call to action
-                <svg class="bi" aria-hidden="true">
-                    <use xlink:href="#chevron-right"></use>
-                </svg> </a>
+            <p>Des plats généreux préparés avec des produits de qualité.</p>
         </div>
         <div class="feature col text-center">
             <div class="feature-icon mb-3">🍰</div>
             <h3 class="fs-2 text-body-emphasis text-center"> ★ Desserts</h3>
-            <p>Des desserts gourmands pour terminer en beauté.</p> <a href="#" class="icon-link">
-                Call to action
-                <svg class="bi" aria-hidden="true">
-                    <use xlink:href="#chevron-right"></use>
-                </svg> </a>
+            <p>Des desserts gourmands pour terminer en beauté.</p> 
         </div>
     </div>
-    <div class="d-grid gap-2 d-md-flex justify-content-md-center"> <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Découvrir notre carte</button></div>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-center"> <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Découvrir nos menus</button></div>
 </div>
 <?php if (!empty($avisValides)) { ?>
     <section class="container my-5">

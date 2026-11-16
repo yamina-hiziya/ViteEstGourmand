@@ -1,4 +1,7 @@
-<?php require_once _ROOTPATH_ . '/templates/header.php'; ?>
+<?php require_once _ROOTPATH_ . '/templates/header.php';
+/** @var bool $envoye */
+
+?>
 
 <div class="container my-5">
     <div class="row justify-content-center">
