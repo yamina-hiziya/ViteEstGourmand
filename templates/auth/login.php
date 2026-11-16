@@ -32,6 +32,9 @@
                     <label class="form-check-label" for="remember_email">Se souvenir de mon email</label>
                 </div>
                 <button class="w-100 btn btn-lg btn-primary" type="submit" name="loginUser">Connexion</button>
+                <div class="text-center mt-3">
+                    <a href="index.php?controller=auth&action=oubli">Mot de passe oublié ?</a>
+                </div>
             </form>
         </div>
     </div>

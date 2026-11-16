@@ -247,10 +247,9 @@ class User extends Entity
             $errors['pays'] = 'Le champ pays ne doit pas être vide';
         }
         if ($verifierMotDePasse) {
-            if (empty($this->getPassword())) {
-                $errors['password'] = 'Le champ mot de passe ne doit pas être vide';
-            } else if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $this->getPassword())) {
-                $errors['password'] = 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
+            $erreurMotDePasse = self::verifierFormatMotDePasse($this->getPassword() ?? '');
+            if ($erreurMotDePasse !== null) {
+                $errors['password'] = $erreurMotDePasse;
             }
         }
         return $errors;
@@ -301,5 +300,20 @@ class User extends Entity
     public static function getCurrentUserId(): int|bool
     {
         return (isset($_SESSION['user']) && isset($_SESSION['user']['id'])) ? $_SESSION['user']['id'] : false;
+    }
+
+    /*
+    Vérifie le format d'un mot de passe.
+    Renvoie un message d'erreur, ou null si le mot de passe est valide.
+*/
+    public static function verifierFormatMotDePasse(string $motDePasse): ?string
+    {
+        if ($motDePasse === '') {
+            return 'Le champ mot de passe ne doit pas être vide';
+        }
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{10,}$/', $motDePasse)) {
+            return 'Le mot de passe doit contenir au moins 10 caractères, dont une majuscule, une minuscule, un chiffre et un caractère spécial';
+        }
+        return null;
     }
 }
