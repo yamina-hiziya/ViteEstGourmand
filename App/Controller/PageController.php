@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Controller;
-use App\Repository\AvisRepository;
 
+use App\Repository\AvisRepository;
+use App\Repository\MenuRepository;
 
 class PageController extends Controller
 {
@@ -14,6 +15,15 @@ class PageController extends Controller
                     case 'accueil':
                         //charger controleur page
                         $this->accueil();
+                        break;
+                    case 'mentionsLegales':
+                        $this->render('page/mentions_legales');
+                        break;
+                    case 'cgv':
+                        $this->render('page/cgv');
+                        break;
+                    case 'cgu':
+                        $this->render('page/cgu');
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -40,6 +50,7 @@ class PageController extends Controller
 
         $this->render('page/accueil', [
             'avisValides' => $avisValides,
+            'menusALaUne' => (new MenuRepository())->findALaUne(3),
         ]);
     }
 }

@@ -40,9 +40,9 @@ use App\Tools\NavigationTools;
             <div>
                 <p class="mb-0 text-body-secondary">© <?= date('Y') ?> - Tous droits réservés </p>
                 <ul class="nav flex-column align-items-center list-unstyled mb-0">
-                    <li><a href="?page=mentions-legales" class="nav-link px-2 link-primary">Mentions légales</a></li>
-                    <li><a href="?page=cgv" class="nav-link px-2 link-primary">Conditions générales de vente</a></li>
-                    <li><a href="?page=cgu" class="nav-link px-2 link-primary">Conditions générales d’Utilisation</a></li>
+                    <li><a href="/index.php?controller=page&action=mentionsLegales" class="nav-link px-2 link-primary">Mentions légales</a></li>
+                    <li><a href="/index.php?controller=page&action=cgv" class="nav-link px-2 link-primary">Conditions générales de vente</a></li>
+                    <li><a href="/index.php?controller=page&action=cgu" class="nav-link px-2 link-primary">Conditions générales d’Utilisation</a></li>
                 </ul>
             </div>
         </div>
