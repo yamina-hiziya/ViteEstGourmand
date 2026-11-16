@@ -37,33 +37,33 @@ class MenuController extends Controller
         }
     }
 
-        protected function show()
-        {
-            try {
-                if (!isset($_GET['id'])) {
-                    throw new \Exception("L'id est manquant en paramètre d'url");
-                }
-
-                $menuRepository = new MenuRepository();
-                $id = (int) $_GET['id'];
-                $menu = $menuRepository->findOneById($id);
-
-                if (!$menu) {
-                    throw new \Exception("Ce menu n'existe pas");
-                }
-                $platRepository = new PlatRepository();
-                $plats = $platRepository->findAllByMenuId($id);
-
-                $this->render('menus/menu', [
-                    'menu' => $menu,
-                    'plats' => $plats,
-                ]);
-            } catch (\Exception $e) {
-                $this->render('errors/default', [
-                    'error' => $e->getMessage()
-                ]);
+    protected function show()
+    {
+        try {
+            if (!isset($_GET['id'])) {
+                throw new \Exception("L'id est manquant en paramètre d'url");
             }
+
+            $menuRepository = new MenuRepository();
+            $id = (int) $_GET['id'];
+            $menu = $menuRepository->findOneById($id);
+
+            if (!$menu) {
+                throw new \Exception("Ce menu n'existe pas");
+            }
+            $platRepository = new PlatRepository();
+            $plats = $platRepository->findAllByMenuId($id);
+
+            $this->render('menus/menu', [
+                'menu' => $menu,
+                'plats' => $plats,
+            ]);
+        } catch (\Exception $e) {
+            $this->render('errors/default', [
+                'error' => $e->getMessage()
+            ]);
         }
+    }
 
 
     protected function list()
@@ -71,7 +71,9 @@ class MenuController extends Controller
         try {
             // Récupérer tous les menus
             $menuRepository = new MenuRepository();
-            $menus = $menuRepository->findAll();
+            // Si un thème est demandé dans l'URL (depuis l'accueil), on filtre dès l'arrivée
+            $themeChoisi = (int) ($_GET['theme_id'] ?? 0);
+            $menus = $menuRepository->findByFilters(['theme_id' => $themeChoisi ?: null]);
             // Récupérer tous les thèmes et allergènes
             $themeRepository = new ThemeRepository();
             $regimeRepository = new RegimeRepository();
@@ -83,14 +85,13 @@ class MenuController extends Controller
                 'menus' => $menus,
                 'themes' => $themes,
                 'regimes' => $regimes,
-
-
+                'themeChoisi' => $themeChoisi,
             ]);
         } catch (\Exception $e) {
             $this->render('errors/default', [
                 'error' => $e->getMessage()
             ]);
-        } 
+        }
     }
 
     protected function filter()
@@ -103,12 +104,11 @@ class MenuController extends Controller
 
             $this->render('menus/_cards', [
                 'menus' => $menus,
-                ]);
-
+            ]);
         } catch (\Exception $e) {
             $this->render('errors/default', [
                 'error' => $e->getMessage()
             ]);
-        } 
+        }
     }
 }
