@@ -1,4 +1,7 @@
-<?php require_once _ROOTPATH_ . '/templates/header.php' ?>
+<?php require_once _ROOTPATH_ . '/templates/header.php' 
+/** @var array $avisValides */
+/** @var App\Entity\Menu[] $menusALaUne */
+?>
 
 <div class="px-4 pt-5 pb-3 mb-0 text-center"> <img class="d-block mx-auto mb-4 rounded-5 img-fluid" src="/public/assets/images/logo_vite_gourmand_degrade_premium.svg" alt="Logo Vite & Gourmand" width="450">
     <div class="col-lg-6 mx-auto">
@@ -14,27 +17,45 @@
         </div>
     </div>
 </div>
-<div class="container px-4 py-5" id="featured-3">
-    <h2 class="pb-2 border-bottom text-center"> ★ Menus ★ </h2>
-    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-        <div class="feature col text-center">
-            <div class="feature-icon mb-3">🥗</div>
-            <h3 class="fs-2 text-body-emphasis text-center"> ★ Entrées</h3>
-            <p>Des entrées fraîches et savoureuses pour bien commencer votre repas.</p>
-        </div>
-        <div class="feature col text-center">
-            <div class="feature-icon mb-3">🍖</div>
-            <h3 class="fs-2 text-body-emphasis text-center"> ★ Plats</h3>
-            <p>Des plats généreux préparés avec des produits de qualité.</p>
-        </div>
-        <div class="feature col text-center">
-            <div class="feature-icon mb-3">🍰</div>
-            <h3 class="fs-2 text-body-emphasis text-center"> ★ Desserts</h3>
-            <p>Des desserts gourmands pour terminer en beauté.</p> 
-        </div>
+<section class="container px-4 py-5">
+    <h2 class="pb-2 border-bottom text-center">Pour tous vos événements</h2>
+    <div class="row g-4 py-4 row-cols-2 row-cols-lg-4">
+        <?php
+        $evenements = [
+            ['icone' => 'bi-heart', 'titre' => 'Mariages', 'texte' => 'Des menus raffinés pour le plus beau jour.', 'theme' => 3],
+            ['icone' => 'bi-gift', 'titre' => 'Anniversaires', 'texte' => 'Des repas conviviaux à partager entre proches.', 'theme' => 4],
+            ['icone' => 'bi-briefcase', 'titre' => 'Entreprises', 'texte' => 'Séminaires, repas d\'équipe et réceptions.', 'theme' => 5],
+            ['icone' => 'bi-stars', 'titre' => 'Fêtes de fin d\'année', 'texte' => 'Des menus de Noël pour régaler toute la famille.', 'theme' => 1],
+        ];
+        foreach ($evenements as $evenement) { ?>
+            <div class="col">
+                <a href="index.php?controller=menu&action=list&theme_id=<?= $evenement['theme'] ?>" class="card h-100 text-center text-decoration-none text-reset">
+                    <div class="card-body">
+                        <i class="bi <?= $evenement['icone'] ?> feature-icon d-block mb-2" aria-hidden="true"></i>
+                        <h3 class="fs-5"><?= $evenement['titre'] ?></h3>
+                        <p class="small mb-0"><?= $evenement['texte'] ?></p>
+                    </div>
+                </a>
+            </div>
+        <?php } ?>
     </div>
-    <div class="d-grid gap-2 d-md-flex justify-content-md-center"> <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Découvrir nos menus</button></div>
-</div>
+</section>
+
+<?php if (!empty($menusALaUne)) { ?>
+    <section class="container px-4 pb-5">
+        <h2 class="pb-2 border-bottom text-center">Nos menus du moment</h2>
+        <div class="row justify-content-center py-4">
+            <?php
+            $menus = $menusALaUne;
+            require _ROOTPATH_ . '/templates/menus/_cards.php';
+            ?>
+        </div>
+        <div class="text-center">
+            <a href="index.php?controller=menu&action=list" class="btn btn-primary btn-lg px-4">Découvrir tous nos menus</a>
+        </div>
+    </section>
+<?php } ?>
+
 <?php if (!empty($avisValides)) { ?>
     <section class="container my-5">
         <h2 class="text-center mb-4">Ils nous ont fait confiance</h2>
