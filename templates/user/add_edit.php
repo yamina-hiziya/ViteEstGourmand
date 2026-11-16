@@ -12,7 +12,7 @@
 
         <div class="col-12 col-lg-10 col-xl-9">
             <form method="POST" class="p-4 p-md-5 border rounded-3 bg-body-tertiary" novalidate>
-
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <div class="form-floating">

@@ -26,6 +26,7 @@ $champs = [
             <?php } ?>
 
             <form method="POST" novalidate>
+            <?= \App\Tools\Csrf::champ() ?>
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" id="email" class="form-control" value="<?= htmlspecialchars($user->getEmail()) ?>" readonly>

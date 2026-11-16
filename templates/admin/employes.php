@@ -27,6 +27,7 @@
                             <div class="small text-muted"><?= htmlspecialchars($employe->getEmail()) ?></div>
                         </div>
                         <form method="POST" action="index.php?controller=admin&action=activer">
+                        <?= \App\Tools\Csrf::champ() ?>
                             <input type="hidden" name="utilisateur_id" value="<?= $employe->getUtilisateurId() ?>">
                             <?php if ($employe->isActif()) { ?>
                                 <input type="hidden" name="actif" value="0">
@@ -46,6 +47,7 @@
                 <div class="card-body">
                     <h2 class="h5">Créer un compte employé</h2>
                     <form method="POST" novalidate>
+                    <?= \App\Tools\Csrf::champ() ?>
                         <?php foreach (['nom' => 'Nom', 'prenom' => 'Prénom', 'email' => 'Email'] as $name => $libelle) {
                             $getter = 'get' . ucfirst($name);
                         ?>

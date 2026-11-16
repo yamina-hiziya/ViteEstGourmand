@@ -34,6 +34,7 @@
                         <div class="d-flex gap-2 mt-auto">
                             <a href="index.php?controller=employe&action=menu&id=<?= $menu->getMenuId() ?>" class="btn btn-sm btn-outline-primary">Modifier</a>
                             <form method="POST" action="index.php?controller=employe&action=supprimerMenu" onsubmit="return confirm('Supprimer ce menu ?');">
+                            <?= \App\Tools\Csrf::champ() ?>
                                 <input type="hidden" name="menu_id" value="<?= $menu->getMenuId() ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
                             </form>

@@ -24,6 +24,7 @@
                         <p class="small text-muted mb-2"><?= htmlspecialchars($avis['prenom']) ?> — <?= htmlspecialchars($avis['menu_titre']) ?></p>
                         <p><?= nl2br(htmlspecialchars($avis['description'])) ?></p>
                         <form method="POST" action="index.php?controller=employe&action=moderer" class="d-flex gap-2 mt-auto">
+                        <?= \App\Tools\Csrf::champ() ?>
                             <input type="hidden" name="avis_id" value="<?= $avis['avis_id'] ?>">
                             <button type="submit" name="decision" value="validé" class="btn btn-success">Valider</button>
                             <button type="submit" name="decision" value="refusé" class="btn btn-outline-danger">Refuser</button>

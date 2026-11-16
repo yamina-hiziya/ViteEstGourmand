@@ -44,6 +44,7 @@
                             <div class="d-flex flex-column flex-md-row gap-2">
                                 <a href="index.php?controller=employe&action=plat&id=<?= $plat->getPlatId() ?>" class="btn btn-sm btn-outline-primary">Modifier</a>
                                 <form method="POST" action="index.php?controller=employe&action=supprimerPlat" onsubmit="return confirm('Supprimer ce plat ?');">
+                                <?= \App\Tools\Csrf::champ() ?>
                                     <input type="hidden" name="plat_id" value="<?= $plat->getPlatId() ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
                                 </form>
@@ -72,6 +73,7 @@
                         <div class="d-flex gap-2 mt-2">
                             <a href="index.php?controller=employe&action=plat&id=<?= $plat->getPlatId() ?>" class="btn btn-sm btn-outline-primary">Modifier</a>
                             <form method="POST" action="index.php?controller=employe&action=supprimerPlat" onsubmit="return confirm('Supprimer ce plat ?');">
+                            <?= \App\Tools\Csrf::champ() ?>
                                 <input type="hidden" name="plat_id" value="<?= $plat->getPlatId() ?>">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Supprimer</button>
                             </form>

@@ -17,6 +17,7 @@
     <?php } ?>
 
     <form method="POST">
+    <?= \App\Tools\Csrf::champ() ?>
         <div class="mb-3">
             <div class="row fw-bold border-bottom pb-2 mb-2 d-none d-md-flex">
                 <div class="col-md-3">Jour</div>
