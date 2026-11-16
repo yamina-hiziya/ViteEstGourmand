@@ -1,6 +1,13 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// Affichage des erreurs uniquement en développement (localhost)
+if (str_starts_with($_SERVER['HTTP_HOST'] ?? '', 'localhost')) {
+    ini_set('display_errors', '1');
+    error_reporting(E_ALL);
+} else {
+    // En production : les erreurs sont enregistrées dans un journal, jamais affichées
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+}
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/App/Config/config.php';
 

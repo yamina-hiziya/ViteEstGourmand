@@ -18,21 +18,11 @@ class Entity
 
     public function hydrate(array $data)
     {
-        if (count($data) > 0) {
-            // On parcourt le tableau de données
-            foreach ($data as $key => $value) {
-                // Pour chaque donnée, on appel le setter
-                $methodName = 'set' . StringTools::toPascalCase($key);
-                if (method_exists($this, $methodName)) {
-                    if ($key == 'created_at') {
-                        $value = new \DateTime($value);
-                    } else if ($key == 'release_date') {
-                        $value = new \DateTime($value);
-                    } else if ($key == 'duration') {
-                        $value = new \DateTime($value);
-                    }
-                    $this->{$methodName}($value);
-                }
+        // Pour chaque donnée reçue, on appelle le setter correspondant s'il existe
+        foreach ($data as $key => $value) {
+            $methodName = 'set' . StringTools::toPascalCase($key);
+            if (method_exists($this, $methodName)) {
+                $this->{$methodName}($value);
             }
         }
     }
