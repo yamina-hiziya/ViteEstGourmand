@@ -3,7 +3,7 @@
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
     <div class="row align-items-center g-lg-5 py-5">
         <div class="col-lg-7 text-center text-lg-start">
-            <h1 class="display-4 fw-bold lh-1 text-body-emphasis mb-3">Connexion</h1>
+            <h1 class="display-5 fw-bold lh-1 text-body-emphasis mb-3">Connexion</h1>
             <p class="col-lg-10 fs-4">Veuillez vous connecter avec vos identifiants.</p>
         </div>
         <div class="col-md-10 mx-auto col-lg-5">
@@ -21,7 +21,7 @@
             <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary" method="POST" action="index.php?controller=auth&action=login">
             <?= \App\Tools\Csrf::champ() ?>
                 <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" value="<?= htmlspecialchars($emailPrerempli ?? '') ?>" required>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="nom@example.com" value="<?= htmlspecialchars($emailPrerempli ?? '') ?>" required>
                     <label for="email">Adresse e-mail</label>
                 </div>
                 <div class="form-floating mb-3">

@@ -11,6 +11,7 @@ body[data-theme="gourmand"] {
     --bs-primary: var(--primary);
     --bs-primary-rgb: var(--primary-rgb);
     --bs-secondary: var(--secondary);
+    --secondary-texte: #7A5C14;
     --bs-secondary-rgb: var(--secondary-rgb);
     --bs-emphasis-color: var(--primary);
     --bs-emphasis-color-rgb: var(--primary-rgb);
@@ -22,6 +23,9 @@ body[data-theme="gourmand"] {
     --bs-nav-link-hover-color: var(--secondary);
 
     background-color: var(--background);
+
+    --bs-body-font-family: 'Lato', sans-serif;
+    --police-titres: 'Playfair Display', serif;
 }
 
 .btn-primary {
@@ -92,7 +96,7 @@ h1.text-body-emphasis {
 h2,
 h3,
 h3.text-body-emphasis {
-    color: var(--secondary) !important;
+    color: var(--secondary-texte) !important;
 }
 
 .etoiles {
@@ -103,4 +107,12 @@ h3.text-body-emphasis {
     font-size: 3rem;
     line-height: 1;
     color: var(--secondary);
+}
+
+h1, h2, h3, .display-4, .display-5 {
+    font-family: var(--police-titres);
+}
+
+.nav-link {
+    font-size: 1.1rem;
 }
