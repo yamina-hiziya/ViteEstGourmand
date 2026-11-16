@@ -44,6 +44,12 @@ services:
     volumes:
       - vg_mongo_data:/data/db
 
+  mailpit:
+    image: axllent/mailpit
+    container_name: vg_mailpit
+    ports:
+      - "8025:8025"
+
 volumes:
   vg_db_data:
   vg_mongo_data:

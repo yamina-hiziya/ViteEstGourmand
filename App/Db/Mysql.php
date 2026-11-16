@@ -14,7 +14,7 @@ class Mysql
 
     private function __construct()
     {
-        $conf = require _ROOTPATH_.'/App/config/db_config.php';
+        $conf = require _ROOTPATH_.'/App/Config/db_config.php';
 
         if (isset($conf['db_name'])) {
             $this->db_name = $conf['db_name'];

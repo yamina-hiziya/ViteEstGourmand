@@ -10,6 +10,7 @@ use App\Repository\CommandeRepository;
 use App\Repository\StatistiqueRepository;
 use App\Entity\Commande;
 use App\Tools\GeoTools;
+use App\Tools\Mailer;
 
 
 class CommandeController extends Controller
@@ -123,6 +124,7 @@ class CommandeController extends Controller
             }
 
             $commandeRepository = new CommandeRepository();
+
             // S'il y a un numéro en session, c'est une modification
             if (!empty($_SESSION['commande_en_cours']['numero_commande'])) {
                 $numero = $_SESSION['commande_en_cours']['numero_commande'];
@@ -134,8 +136,26 @@ class CommandeController extends Controller
                 header('Location: index.php?controller=compte&action=detail&numero=' . urlencode($numero));
                 exit;
             }
+
+            // Sinon, c'est une nouvelle commande
             $numero = $commandeRepository->creer($_SESSION['commande_en_cours'], User::getCurrentUserId());
             $this->enregistrerStatistique($numero, $_SESSION['commande_en_cours']);
+
+            // Mail de confirmation au client
+            $cmd = $_SESSION['commande_en_cours'];
+            Mailer::envoyer(
+                $_SESSION['user']['email'],
+                'Confirmation de votre commande ' . $numero,
+                '<p>Bonjour ' . htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) . ',</p>
+             <p>Nous avons bien reçu votre commande <strong>' . htmlspecialchars($numero) . '</strong>.</p>
+             <ul>
+                <li>Menu : ' . htmlspecialchars($cmd['menu_titre']) . '</li>
+                <li>Date : ' . date('d/m/Y', strtotime($cmd['date_prestation'])) . ' à ' . htmlspecialchars($cmd['heure_livraison']) . '</li>
+                <li>Nombre de personnes : ' . (int) $cmd['nombre_personne'] . '</li>
+                <li>Total : ' . number_format($cmd['prix_menu'] + $cmd['prix_livraison'], 2, ',', ' ') . ' €</li>
+             </ul>
+             <p>Elle est en attente de validation par notre équipe. Vous pouvez suivre son avancement depuis votre espace.</p>'
+            );
 
             // La commande est enregistrée : on vide la session et on redirige
             unset($_SESSION['commande_en_cours']);

@@ -87,4 +87,41 @@ class UserRepository extends Repository
         $query->execute(['actif' => $actif ? 1 : 0, 'id' => $utilisateurId]);
         return $query->rowCount() > 0;
     }
+
+    /*
+    Enregistre l'empreinte du jeton de réinitialisation, valable 1 heure
+*/
+    public function enregistrerJeton(int $utilisateurId, string $jetonHash): void
+    {
+        $query = $this->pdo->prepare('UPDATE utilisateur
+                                  SET reset_token_hash = :hash, reset_expiration = DATE_ADD(NOW(), INTERVAL 1 HOUR)
+                                  WHERE utilisateur_id = :id');
+        $query->execute(['hash' => $jetonHash, 'id' => $utilisateurId]);
+    }
+
+    /*
+    Retrouve l'utilisateur d'un jeton, seulement s'il n'a pas expiré
+*/
+    public function findOneByJetonValide(string $jetonHash): User|bool
+    {
+        $query = $this->pdo->prepare('SELECT * FROM utilisateur
+                                  WHERE reset_token_hash = :hash AND reset_expiration > NOW() AND actif = 1');
+        $query->execute(['hash' => $jetonHash]);
+        $user = $query->fetch($this->pdo::FETCH_ASSOC);
+        return $user ? User::createAndHydrate($user) : false;
+    }
+
+    /*
+    Enregistre le nouveau mot de passe haché et efface le jeton (usage unique)
+    */
+    public function changerMotDePasse(int $utilisateurId, string $motDePasse): void
+    {
+        $query = $this->pdo->prepare('UPDATE utilisateur
+                                  SET password = :password, reset_token_hash = NULL, reset_expiration = NULL
+                                  WHERE utilisateur_id = :id');
+        $query->execute([
+            'password' => password_hash($motDePasse, PASSWORD_DEFAULT),
+            'id' => $utilisateurId,
+        ]);
+    }
 }

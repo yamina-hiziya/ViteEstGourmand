@@ -1,6 +1,13 @@
 <?php require_once _ROOTPATH_ . '/templates/header.php';
 /** @var array $statistiques */
 /** @var App\Entity\Menu[] $menus */
+/** @var int|null $menuId */
+/** @var string|null $debut */
+/** @var string|null $fin */
+/** @var int $totalCommandes */
+/** @var float $totalChiffreAffaires */
+/** @var string|null $erreur */
+/** @var string|null $succes */
 ?>
 
 <div class="container my-5">

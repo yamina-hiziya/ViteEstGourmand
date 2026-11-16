@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\UserRepository;
 use App\Entity\User;
+use App\Tools\Mailer;
 
 
 class UserController extends Controller
@@ -70,6 +71,14 @@ class UserController extends Controller
                 // 5. Aucune erreur : on enregistre et on redirige vers la connexion
                 if (empty($errors)) {
                     $userRepository->persist($user);
+                    // Mail de bienvenue (si l'envoi échoue, l'inscription reste valide)
+                    Mailer::envoyer(
+                        $user->getEmail(),
+                        'Bienvenue chez Vite & Gourmand',
+                        '<p>Bonjour ' . htmlspecialchars(ucfirst($user->getPrenom())) . ',</p>
+                            <p>Votre compte a bien été créé. Vous pouvez dès maintenant découvrir nos menus et passer commande pour vos événements.</p>
+                            <p>À très bientôt,<br>Julie et José</p>'
+                    );
                     $_SESSION['inscription_email'] = $user->getEmail();
                     $_SESSION['message_succes'] = 'Votre compte a bien été créé. Vous pouvez maintenant vous connecter.';
                     header('Location: index.php?controller=auth&action=login');

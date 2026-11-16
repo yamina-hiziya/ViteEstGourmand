@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use App\Repository\StatistiqueRepository;
 use App\Repository\MenuRepository;
 use App\Repository\CommandeRepository;
+use App\Tools\Mailer;
 
 class AdminController extends Controller
 {
@@ -73,6 +74,14 @@ class AdminController extends Controller
 
             if (empty($errors)) {
                 $userRepository->persist($nouveau);
+                // L'ECF impose de ne pas communiquer le mot de passe dans le mail
+                Mailer::envoyer(
+                    $nouveau->getEmail(),
+                    'Votre compte employé Vite & Gourmand',
+                    '<p>Bonjour ' . htmlspecialchars(ucfirst($nouveau->getPrenom())) . ',</p>
+                    <p>Un compte employé a été créé pour vous sur le site Vite &amp; Gourmand, avec cette adresse email comme identifiant.</p>
+                    <p>Pour des raisons de sécurité, votre mot de passe ne vous est pas communiqué par mail : merci de vous rapprocher de l\'administrateur pour l\'obtenir.</p>'
+                );
                 $_SESSION['message_succes'] = 'Le compte employé a bien été créé.';
                 header('Location: index.php?controller=admin&action=employes');
                 exit;

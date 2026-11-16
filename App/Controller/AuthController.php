@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Controller;
+use App\Entity\User;
+use App\Tools\Mailer;
 
 use App\Repository\UserRepository;
 
@@ -16,6 +18,12 @@ class AuthController extends Controller
                         break;
                     case 'logout':
                         $this->logout();
+                        break;
+                    case 'oubli':
+                        $this->oubli();
+                        break;
+                    case 'reinitialiser':
+                        $this->reinitialiser();
                         break;
                     default:
                         throw new \Exception("Cette action n'existe pas : " . $_GET['action']);
@@ -103,5 +111,80 @@ class AuthController extends Controller
         unset($_SESSION);
         header('Location: index.php?controller=auth&action=login');
         exit;
+    }
+
+    protected function oubli()
+    {
+        $envoye = false;
+
+        if (isset($_POST['demanderLien'])) {
+            $email = trim($_POST['email'] ?? '');
+            $userRepository = new UserRepository();
+            $user = filter_var($email, FILTER_VALIDATE_EMAIL) ? $userRepository->findOneByEmail($email) : false;
+
+            if ($user && $user->isActif()) {
+                // Jeton aléatoire : seule son empreinte est enregistrée en base
+                $jeton = bin2hex(random_bytes(32));
+                $userRepository->enregistrerJeton($user->getUtilisateurId(), hash('sha256', $jeton));
+
+                $lien = Mailer::url('index.php?controller=auth&action=reinitialiser&token=' . $jeton);
+                Mailer::envoyer(
+                    $user->getEmail(),
+                    'Réinitialisation de votre mot de passe',
+                    '<p>Bonjour ' . htmlspecialchars(ucfirst($user->getPrenom())) . ',</p>
+                 <p>Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour en choisir un nouveau :</p>
+                 <p><a href="' . htmlspecialchars($lien) . '" style="background: #1B4A8A; color: #ffffff; padding: 10px 16px; border-radius: 6px; text-decoration: none;">Choisir un nouveau mot de passe</a></p>
+                 <p>Ce lien est valable pendant 1 heure. Si vous n\'êtes pas à l\'origine de cette demande, ignorez simplement ce message.</p>'
+                );
+            }
+
+            // Toujours le même message, que le compte existe ou non
+            $envoye = true;
+        }
+
+        $this->render('auth/oubli', [
+            'envoye' => $envoye,
+        ]);
+    }
+
+    protected function reinitialiser()
+    {
+        $jeton = $_GET['token'] ?? '';
+        $userRepository = new UserRepository();
+        $user = $jeton !== '' ? $userRepository->findOneByJetonValide(hash('sha256', $jeton)) : false;
+        $errors = [];
+
+        if (!$user) {
+            $this->render('auth/reinitialiser', [
+                'valide' => false,
+                'errors' => [],
+            ]);
+            return;
+        }
+
+        if (isset($_POST['saveMotDePasse'])) {
+            $motDePasse = $_POST['password'] ?? '';
+            $confirmation = $_POST['password_confirm'] ?? '';
+
+            $erreur = User::verifierFormatMotDePasse($motDePasse);
+            if ($erreur !== null) {
+                $errors['password'] = $erreur;
+            } elseif ($motDePasse !== $confirmation) {
+                $errors['password_confirm'] = 'Les deux mots de passe ne sont pas identiques';
+            }
+
+            if (empty($errors)) {
+                $userRepository->changerMotDePasse($user->getUtilisateurId(), $motDePasse);
+                $_SESSION['message_succes'] = 'Votre mot de passe a bien été modifié. Vous pouvez vous connecter.';
+                $_SESSION['inscription_email'] = $user->getEmail();
+                header('Location: index.php?controller=auth&action=login');
+                exit;
+            }
+        }
+
+        $this->render('auth/reinitialiser', [
+            'valide' => true,
+            'errors' => $errors,
+        ]);
     }
 }

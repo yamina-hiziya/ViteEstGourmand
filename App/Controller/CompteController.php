@@ -15,6 +15,15 @@ class CompteController extends Controller
         try {
             // Tout l'espace client est réservé aux utilisateurs connectés
             if (!User::isLogged()) {
+                // On mémorise la page demandée, pour y revenir après la connexion
+                $action = $_GET['action'] ?? 'commandes';
+                $retour = 'index.php?controller=compte&action=' . urlencode($action);
+                if (isset($_GET['numero'])) {
+                    $retour .= '&numero=' . urlencode($_GET['numero']);
+                }
+                $_SESSION['redirect_after_login'] = $retour;
+                $_SESSION['message_succes'] = 'Connectez-vous pour accéder à votre espace.';
+
                 header('Location: index.php?controller=auth&action=login');
                 exit;
             }
