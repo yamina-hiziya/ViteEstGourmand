@@ -1,0 +1,54 @@
+<?php
+
+use App\Tools\NavigationTools;
+use App\Entity\User;
+
+$mainMenu = require_once __DIR__ . '/../App/Config/menu.php';
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite&Gourmand</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/assets/css/override-bootstrap.css?v=2">
+</head>
+
+<body data-theme="gourmand">
+    <div class="container">
+        <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-between py-3 mb-4 border-bottom border-dark border-2">
+            <div class="col-12 col-lg-auto mb-2 mb-lg-0 text-center">
+                <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
+                <img src="/public/assets/images/logo_fond_or.svg" width="120" height="80" alt="Logo Vite & Gourmand">                </a>
+            </div>
+            <ul class="nav col-12 col-lg-auto mb-2 mb-lg-0 justify-content-center">
+                <?php foreach ($mainMenu as $item) {  ?>
+                    <li><a href="/index.php?controller=<?= $item['controller'] ?>&action=<?= $item['action'] ?>" class="nav-link px-2 <?= NavigationTools::addActiveClass($item['controller'], $item['action']) ?>"><?= $item['label'] ?></a></li>
+                <?php } ?>
+            </ul>
+            <div class="col-12 col-lg-auto d-flex flex-wrap gap-2 justify-content-center align-items-center">
+                <?php if (User::isLogged()) { ?>
+                    <span class="col-12 col-lg-auto text-center">Bonjour <?= htmlspecialchars(ucfirst($_SESSION['user']['prenom'])) ?></span>
+                    <?php if (User::isEmploye() || User::isAdmin()) { ?>
+                        <?php if (User::isAdmin()) { ?>
+                            <a href="/index.php?controller=admin&action=employes" class="btn btn-sm btn-outline-primary">Administration</a>
+                        <?php } ?>
+                        <a href="/index.php?controller=employe&action=commandes" class="btn btn-sm btn btn-outline-primary">Espace employé</a>
+                    <?php } ?>
+                    <a href="/index.php?controller=compte&action=commandes" class="btn btn-sm btn btn-outline-primary">Mon espace</a>
+                    <a href="/index.php?controller=auth&action=logout" class="btn btn-sm btn btn-outline-primary">Déconnexion</a>
+                <?php } else { ?>
+                    <a href="/index.php?controller=auth&action=login" class="btn btn-outline-primary">Connexion</a>
+                    <a href="/index.php?controller=user&action=register" class="btn btn-primary">Inscription</a>
+                <?php } ?>
+            </div>
+        </header>
+    </div>
+    <main>
