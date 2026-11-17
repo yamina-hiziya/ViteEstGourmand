@@ -21,3 +21,4 @@ mail_config.php
 .vscode/
 *.swp
 
+.phpunit.cache/
