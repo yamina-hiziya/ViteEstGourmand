@@ -1,3 +1,7 @@
+# Sécurité : bloque l'accès aux fichiers et dossiers techniques
+RedirectMatch 404 /\.
+RedirectMatch 404 ^/(App|templates|tests|vendor)/
+RedirectMatch 404 ^/(composer\.json|composer\.lock|phpunit\.xml|docker-compose\.yml|Dockerfile|README\.md)$
 
 RewriteEngine On
 
