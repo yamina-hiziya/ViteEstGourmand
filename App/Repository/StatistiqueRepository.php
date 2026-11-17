@@ -9,15 +9,16 @@ use MongoDB\BSON\UTCDateTime;
 
 class StatistiqueRepository
 {
-    const BASE = 'vite_gourmand';
+    private string $base;
     const COLLECTION = 'commandes_stats';
 
     private Manager $manager;
 
     public function __construct()
     {
-        // "mongo" est le nom du service dans docker-compose.yml
-        $this->manager = new Manager('mongodb://mongo:27017');
+    $config = require _ROOTPATH_ . '/App/Config/mongo_config.php';
+    $this->manager = new Manager($config['uri']);
+    $this->base = $config['base'];
     }
 
     /*
@@ -42,8 +43,7 @@ class StatistiqueRepository
             ],
             ['upsert' => true]
         );
-        $this->manager->executeBulkWrite(self::BASE . '.' . self::COLLECTION, $bulk);
-    }
+        $this->manager->executeBulkWrite($this->base . '.' . self::COLLECTION, $bulk);    }
 
     /*
         Met à jour seulement le statut d'une commande
@@ -55,7 +55,7 @@ class StatistiqueRepository
             ['numero_commande' => $numero],
             ['$set' => ['statut' => $statut]]
         );
-        $this->manager->executeBulkWrite(self::BASE . '.' . self::COLLECTION, $bulk);
+        $this->manager->executeBulkWrite($this->base . '.' . self::COLLECTION, $bulk);
     }
 
     /*
@@ -91,7 +91,7 @@ class StatistiqueRepository
         ]);
 
         $resultats = [];
-        foreach ($this->manager->executeCommand(self::BASE, $command) as $ligne) {
+        foreach ($this->manager->executeCommand($this->base, $command) as $ligne) {
             $resultats[] = [
                 'menu' => $ligne->_id,
                 'nb_commandes' => $ligne->nb_commandes,
