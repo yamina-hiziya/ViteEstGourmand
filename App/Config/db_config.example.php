@@ -1,3 +1,5 @@
+<?php
+
 return[
     'db_name' => #'nom_de_la_base_de_donnees',
     'db_user' => #'nom_utilisateur_de_la_base_de_donnees',
