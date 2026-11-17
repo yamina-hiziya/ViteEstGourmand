@@ -21,4 +21,5 @@ mail_config.php
 .vscode/
 *.swp
 
-.phpunit.cache/App/Config/mongo_config.php
+.phpunit.cache/
+App/Config/mongo_config.php
