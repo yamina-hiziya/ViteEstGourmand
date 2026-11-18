@@ -1,0 +1,42 @@
+%%mocodo
+:
+THEME: theme_id, libelle
+:::
+MENU: menu_id, titre, nombre_personne_minimum, prix_par_personne, description, quantite_restante, conditions, photo, #theme_id > THEME > theme_id, #regime_id > REGIME > regime_id
+:::
+REGIME: regime_id, libelle
+:
+
+
+:
+ALLERGENE: allergene_id, libelle
+:
+PLAT_ALLERGENE: #plat_id > PLAT > plat_id, _#allergene_id > ALLERGENE > allergene_id
+:
+MENU_PLAT: #menu_id > MENU > menu_id, _#plat_id > PLAT > plat_id
+:::
+HORAIRE: horaire_id, jour, heure_ouverture, heure_fermeture
+:
+
+
+:::
+PLAT: plat_id, titre_plat, photo, type_plat
+:
+COMMANDE_PLAT: #numero_commande > COMMANDE > numero_commande, _#plat_id > PLAT > plat_id, quantite
+:
+COMMANDE: numero_commande, date_commande, date_prestation, heure_livraison, adresse_livraison, ville_livraison, distance_km, prix_menu, nombre_personne, prix_livraison, statut, pret_materiel, restitution_materiel, #menu_id > MENU > menu_id, #utilisateur_id > UTILISATEUR > utilisateur_id
+:::
+
+
+:
+ROLE: role_id, libelle
+:::::::
+SUIVI_COMMANDE: suivi_id, statut, date_heure, motif, mode_contact, #numero_commande > COMMANDE > numero_commande
+:
+
+
+:::
+UTILISATEUR: utilisateur_id, email, password, nom, prenom, telephone, ville, pays, adresse_postale, actif, reset_token_hash, reset_expiration, #role_id > ROLE > role_id
+:::
+AVIS: avis_id, note, description, statut, #numero_commande > COMMANDE > numero_commande, #utilisateur_id > UTILISATEUR > utilisateur_id
+:::
