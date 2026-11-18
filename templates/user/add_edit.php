@@ -86,7 +86,7 @@
                                 <input type="password" class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>" id="password" name="password" placeholder="Mot de passe" required minlength="10" aria-describedby="aidePassword">
                                 <label for="password">Mot de passe</label>
                             </div>
-                            <button type="button" class="btn btn-outline-secondary" data-cible="password_confirm" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                            <button type="button" class="btn btn-outline-secondary" data-cible="password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i></button>
                             <?php if (isset($errors['password'])) { ?>
                                 <div class="invalid-feedback"><?= $errors['password'] ?></div>
                             <?php } ?>
