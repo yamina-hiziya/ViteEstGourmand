@@ -1,0 +1,29 @@
+THEME: theme_id, libelle
+APPARTIENT, 11 MENU, 0N THEME
+MENU: menu_id, titre, nombre_personne_minimum, prix_par_personne, description, quantite_restante, conditions, photo
+ADAPTE, 11 MENU, 0N REGIME
+REGIME: regime_id, libelle
+
+ALLERGENE: allergene_id, libelle
+CONTIENT, 0N PLAT, 0N ALLERGENE
+COMPOSE, 1N MENU, 0N PLAT
+CONCERNE, 11 COMMANDE, 0N MENU
+HORAIRE: horaire_id, jour, heure_ouverture, heure_fermeture
+
+:
+PLAT: plat_id, titre_plat, photo, type_plat
+CHOISIT, 1N COMMANDE, 0N PLAT: quantite
+COMMANDE: numero_commande, date_commande, date_prestation, heure_livraison, adresse_livraison, ville_livraison, distance_km, prix_menu, nombre_personne, prix_livraison, statut, pret_materiel, restitution_materiel
+ENREGISTRE, 1N COMMANDE, 11 SUIVI_COMMANDE
+
+ROLE: role_id, libelle
+POSSEDE, 11 UTILISATEUR, 0N ROLE
+PASSE, 0N UTILISATEUR, 11 COMMANDE
+PORTE, 11 AVIS, 01 COMMANDE
+SUIVI_COMMANDE: suivi_id, statut, date_heure, motif, mode_contact
+
+:
+UTILISATEUR: utilisateur_id, email, password, nom, prenom, telephone, ville, pays, adresse_postale, actif, reset_token_hash, reset_expiration
+REDIGE, 0N UTILISATEUR, 11 AVIS
+AVIS: avis_id, note, description, statut
+:
