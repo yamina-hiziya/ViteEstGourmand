@@ -103,6 +103,7 @@ templates/           Vues HTML
 public/assets/       CSS, JavaScript et images
 tests/               Tests unitaires PHPUnit
 sql/                 Création de la base et données de démonstration
+docs/                MCD, MLD, diagrammes de cas d'utilisation et de séquence
 ```
 
 ## Branches Git
